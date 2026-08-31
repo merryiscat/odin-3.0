@@ -1,0 +1,4 @@
+# 줄바꿈 정규화 — 스크립트가 플랫폼에서 깨지지 않도록 고정.
+# .sh 는 항상 LF(Git Bash에서 실행), .cmd 는 항상 CRLF(cmd.exe 파싱).
+*.sh   text eol=lf
+*.cmd  text eol=crlf

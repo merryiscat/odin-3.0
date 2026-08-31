@@ -1,0 +1,120 @@
+# ==========================================================================
+# Odin 3.0 .gitignore — PUBLIC 레포 + 금융 프로젝트.
+# 원칙: "돈·키·계좌·개인정보는 절대 커밋 금지"(브레인 §7-1·§7-2).
+# 새 파일 형식이 생기면 여기부터 막고 만든다. 의심되면 무조건 ignore.
+# ==========================================================================
+
+# ---- 비밀·키·환경변수 (제일 중요) ------------------------------------------
+.env
+.env.*
+# 템플릿(값 없는 예시)만 예외로 허용 (gitignore는 인라인 주석 불가 → 주석은 윗줄에)
+!.env.example
+*.env
+.envrc
+secrets/
+secret*.json
+*secret*
+*credential*
+*password*
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cert
+*.der
+*.keystore
+*.jks
+# 한국투자증권(KIS)·DART·OpenAI·Supabase·텔레그램 키/토큰 흔한 이름
+*api_key*
+*apikey*
+*token*.json
+kis_*.json
+koreainvestment*.json
+*_appkey*
+*_appsecret*
+appkey*
+appsecret*
+access_token*
+approval_key*
+service_role*
+supabase_service*
+
+# ---- 증권 계좌·매매·개인정보 (금융 특화) ------------------------------------
+accounts/
+account_*.json
+positions*.json
+balance*.json
+*.trades.json
+orders*.json
+kis_token*.txt
+# .pickle=토큰 캐시 흔함 / .pkl=모델 아티팩트·토큰 → Storage로, 레포엔 금지
+*.pickle
+*.pkl
+
+# ---- 데이터 덤프 (시세·뉴스·DB 백업이 실수로 커밋되는 것 차단) --------------
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+*.sql.gz
+db_backup*/
+data/
+datasets/
+*.csv
+*.parquet
+*.feather
+# 문서용 소량 샘플만 허용
+!**/sample_*.csv
+
+# ---- Python (uv 사용) -------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.python-version
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# ---- Node / GUI(.exe 빌드) --------------------------------------------------
+node_modules/
+.pnpm-store/
+*.log
+npm-debug.log*
+release/
+out/
+*.exe
+*.msi
+*.dmg
+*.AppImage
+*.blockmap
+
+# ---- OS / 에디터 ------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*~
+
+# ---- 로그·임시 --------------------------------------------------------------
+logs/
+*.log.*
+tmp/
+temp/
+.cache/
+
+# ---- 로컬 전용: 공개 보류 --------------------------------------------------
+# 아직 공개 부적절한 내부 문서 → 로컬에만 두고 커밋 안 함. 나중에 다듬어 재검토.
+/CLAUDE.md
+/db/old_schema_map.md
+# MCP 설정: 비밀 키는 없지만(OAuth 인증) 프로젝트 식별자가 담김 → 로컬 전용.
+.mcp.json
