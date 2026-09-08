@@ -99,11 +99,19 @@ out/
 # ---- OS / 에디터 ------------------------------------------------------------
 .DS_Store
 Thumbs.db
+ehthumbs.db
 desktop.ini
+$RECYCLE.BIN/
+*.lnk
 .vscode/
 .idea/
 *.swp
 *~
+
+# ---- AI 에이전트 로컬 설정 (기기마다 달라 공유하면 안 됨) -------------------
+# 개인 권한 허용 목록 등 내 컴퓨터에만 해당하는 설정. 공유용 설정은 .claude/settings.json.
+.claude/settings.local.json
+.claude/*.local.json
 
 # ---- 로그·임시 --------------------------------------------------------------
 logs/
