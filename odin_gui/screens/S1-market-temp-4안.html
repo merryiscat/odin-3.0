@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시장 온도(S1) — 4안 — Odin 3.0</title>
+<style>
+/* ── 와이어프레임 공통 (흑백 6단계만) ─────────────────────────── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Malgun Gothic', sans-serif; background: #eee; color: #000; padding: 16px; }
+.meta { background: #fff; border: 1px solid #000; padding: 16px; margin-bottom: 24px; font-size: 13px; line-height: 1.7; }
+.meta b { display: inline-block; min-width: 72px; }
+h1 { font-size: 18px; margin-bottom: 12px; }
+
+.variant { margin-bottom: 40px; }
+.v-head { font-size: 14px; font-weight: bold; padding: 8px 12px; background: #333; color: #fff; }
+.v-concept { font-size: 12px; padding: 6px 12px; background: #ccc; border: 1px solid #999; border-top: none; }
+.frame { background: #fff; border: 1px solid #000; border-top: none; padding: 16px; }
+
+/* 공통 컴포넌트 */
+.badge { display: inline-block; font-size: 10px; border: 1px solid #666; padding: 1px 6px; color: #333; }
+.badge--live { background: #333; color: #fff; border-color: #333; }
+.conf { font-size: 10px; color: #999; }
+.sec-label { font-size: 11px; font-weight: bold; color: #666; letter-spacing: .08em; margin: 18px 0 8px; }
+.sec-label:first-child { margin-top: 0; }
+
+/* 열(격렬함) 음영 — 차분=흰색, 달아오름=회색, 과열=진회색 */
+.h0 { background: #fff; }
+.h1 { background: #ccc; }
+.h2 { background: #666; color: #fff; }
+
+/* ── 보편 A: 홈 우선 카드 ────────────────────────────────────── */
+.a-home { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.a-card { border: 1px solid #000; padding: 14px; }
+.a-mkt { font-size: 12px; font-weight: bold; color: #666; display: flex; justify-content: space-between; }
+.a-now { font-size: 30px; font-weight: bold; margin: 10px 0 2px; }
+.a-desc { font-size: 12px; color: #333; margin-bottom: 12px; }
+.a-hz { display: flex; border-top: 1px solid #ccc; }
+.a-hz > div { flex: 1; padding: 8px 6px 2px; border-right: 1px solid #ccc; }
+.a-hz > div:last-child { border-right: none; }
+.a-hz .hz-nm { font-size: 10px; color: #999; }
+.a-hz .hz-val { font-size: 13px; font-weight: bold; margin-top: 2px; }
+.a-hz .hz-heat { display: inline-block; width: 34px; height: 8px; border: 1px solid #666; margin-top: 4px; }
+.a-abroad { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
+.a-mini { border: 1px solid #999; padding: 8px 10px; font-size: 11px; }
+.a-mini b { display: block; font-size: 12px; }
+.a-mini .row { display: flex; justify-content: space-between; margin-top: 4px; color: #333; }
+
+/* ── 보편 B: 전체 매트릭스 ───────────────────────────────────── */
+.b-tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+.b-tbl th, .b-tbl td { border: 1px solid #999; padding: 8px 6px; text-align: center; }
+.b-tbl th { background: #eee; font-size: 11px; color: #333; }
+.b-tbl td.mkt { text-align: left; font-weight: bold; background: #fff; white-space: nowrap; }
+.b-tbl tr.home td.mkt { border-left: 3px solid #000; }
+.b-cell .dir { font-size: 15px; font-weight: bold; }
+.b-cell .st { font-size: 10px; }
+.b-legend { font-size: 10px; color: #666; margin-top: 8px; display: flex; gap: 14px; flex-wrap: wrap; }
+.b-legend span i { display: inline-block; width: 12px; height: 10px; border: 1px solid #666; vertical-align: -1px; margin-right: 3px; font-style: normal; }
+
+/* ── 실험 A: 날씨 예보 ───────────────────────────────────────── */
+.w-today { border: 1px solid #000; padding: 14px; }
+.w-head { display: flex; justify-content: space-between; align-items: baseline; }
+.w-big { font-size: 34px; font-weight: bold; margin: 8px 0 2px; }
+.w-feel { font-size: 12px; color: #333; }
+.w-strip { display: flex; margin-top: 14px; border: 1px solid #666; }
+.w-strip > div { flex: 1; text-align: center; font-size: 9px; padding: 6px 0 4px; border-right: 1px solid #ccc; }
+.w-strip > div:last-child { border-right: none; }
+.w-strip .t { color: #999; display: block; margin-top: 3px; }
+.w-strip .sess { font-size: 8px; color: #666; display: block; }
+.w-longrow { display: flex; gap: 10px; margin-top: 10px; }
+.w-long { flex: 1; border: 1px solid #999; padding: 10px 12px; font-size: 12px; }
+.w-long b { font-size: 13px; }
+.w-world { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.w-tile { flex: 1; min-width: 90px; border: 1px solid #999; padding: 6px 8px; font-size: 10px; text-align: center; }
+.w-tile b { display: block; font-size: 11px; }
+
+/* ── 실험 B: 온도 좌표 맵 ────────────────────────────────────── */
+.m-tabs { display: flex; gap: 0; margin-bottom: 10px; }
+.m-tabs div { border: 1px solid #000; padding: 6px 18px; font-size: 12px; background: #fff; }
+.m-tabs div.on { background: #000; color: #fff; font-weight: bold; }
+.m-wrap { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.m-grid { border: 1px solid #000; }
+.m-row { display: flex; }
+.m-ylab { width: 62px; font-size: 10px; color: #666; display: flex; align-items: center; justify-content: center; border-right: 1px solid #999; }
+.m-cell { flex: 1; min-height: 74px; border: 1px solid #ccc; padding: 4px; font-size: 10px; }
+.m-dot { display: inline-block; border: 1px solid #000; background: #fff; padding: 2px 5px; margin: 2px; font-size: 10px; font-weight: bold; }
+.m-dot.home { background: #000; color: #fff; }
+.m-xlab { display: flex; }
+.m-xlab div { flex: 1; text-align: center; font-size: 10px; color: #666; padding: 4px 0; }
+.m-xlab .pad { width: 62px; flex: none; }
+.m-side { border: 1px solid #999; padding: 10px 12px; font-size: 11px; line-height: 1.9; }
+
+/* ── 사이드 노트 ─────────────────────────────────────────────── */
+.notes { background: #fff; border: 1px dashed #666; padding: 16px; font-size: 12px; line-height: 1.7; }
+.notes h2 { font-size: 13px; margin: 10px 0 4px; }
+.notes h2:first-child { margin-top: 0; }
+
+@media (min-width: 768px) {
+  .a-home { grid-template-columns: 1fr 1fr; }
+  .a-abroad { grid-template-columns: repeat(3, 1fr); }
+  .m-wrap { grid-template-columns: 2fr 1fr; }
+}
+@media (min-width: 1024px) {
+  body { padding: 24px 48px; }
+  .a-abroad { grid-template-columns: repeat(6, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<div class="meta">
+  <h1>시장 온도 (S1) — 화면 4안</h1>
+  <div><b>목적</b> 8시장 × 3지평(일간/주간/월간)의 2축 온도(방향×열)를 한눈에 보여준다. 계산 없음 — state_market_temp만 읽는다.</div>
+  <div><b>진입점</b> GUI 첫 화면(대시보드 기본 진입) 또는 사이드바 "시장 온도".</div>
+  <div><b>다음</b> 시장 클릭 → 시장 상세(장중 이력·근거 지표, 화면 미정). 지평 클릭 → 해당 지평 필터.</div>
+  <div><b>가정</b> 읽기전용. basis(eod/live/pre/after)로 잠정/확정 구분 표시. 정규장 중 1분 자동 갱신.</div>
+  <div><b>작성일</b> 2026-09-04</div>
+</div>
+
+<!-- ══════════════ 보편 A ══════════════ -->
+<div class="variant">
+  <div class="v-head">보편 A — 홈 우선 계기판</div>
+  <div class="v-concept">컨셉: 내가 매매하는 한국 2시장을 크게, 해외 6시장은 아래 작게. "지금 우리 시장 어때?"에 3초 안에 답하는 화면. (옛 M2 계기판의 후계)</div>
+  <div class="frame">
+    <div class="sec-label">홈 시장</div>
+    <div class="a-home">
+      <div class="a-card">
+        <div class="a-mkt"><span>코스피</span><span><span class="badge badge--live">장중 실시간</span> <span class="conf">{10:24} 기준</span></span></div>
+        <div class="a-now">하락 속 반등 시도</div>
+        <div class="a-desc">일간 상승이지만 주간·월간은 하락 — 큰 흐름은 아직 아래</div>
+        <div class="a-hz">
+          <div><div class="hz-nm">일간</div><div class="hz-val">상승 ↑</div><div class="hz-heat h1"></div><div class="conf">달아오름 · 확신 {72}%</div></div>
+          <div><div class="hz-nm">주간</div><div class="hz-val">하락 ↓</div><div class="hz-heat h0"></div><div class="conf">차분 · 확신 {88}%</div></div>
+          <div><div class="hz-nm">월간</div><div class="hz-val">하락 ↓</div><div class="hz-heat h0"></div><div class="conf">차분 · 확신 {91}%</div></div>
+        </div>
+      </div>
+      <div class="a-card">
+        <div class="a-mkt"><span>코스닥</span><span><span class="badge badge--live">장중 실시간</span> <span class="conf">{10:24} 기준</span></span></div>
+        <div class="a-now">조용한 횡보</div>
+        <div class="a-desc">세 지평 모두 방향 없음 — 출렁임도 낮은 상태</div>
+        <div class="a-hz">
+          <div><div class="hz-nm">일간</div><div class="hz-val">횡보 →</div><div class="hz-heat h0"></div><div class="conf">차분 · 확신 {64}%</div></div>
+          <div><div class="hz-nm">주간</div><div class="hz-val">횡보 →</div><div class="hz-heat h0"></div><div class="conf">차분 · 확신 {70}%</div></div>
+          <div><div class="hz-nm">월간</div><div class="hz-val">횡보 →</div><div class="hz-heat h1"></div><div class="conf">달아오름 · 확신 {58}%</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="sec-label">해외 시장 (맥락)</div>
+    <div class="a-abroad">
+      <div class="a-mini"><b>S&amp;P500</b><div class="row"><span>일 상승↑</span><span>주 상승↑</span><span>월 상승↑</span></div><div class="conf">간밤 확정</div></div>
+      <div class="a-mini"><b>나스닥</b><div class="row"><span>일 상승↑</span><span>주 상승↑</span><span>월 상승↑</span></div><div class="conf">간밤 확정 · 과열</div></div>
+      <div class="a-mini"><b>닛케이225</b><div class="row"><span>일 횡보→</span><span>주 상승↑</span><span>월 상승↑</span></div><div class="conf">장중 지연</div></div>
+      <div class="a-mini"><b>그로스250</b><div class="row"><span>일 하락↓</span><span>주 횡보→</span><span>월 하락↓</span></div><div class="conf">장중 지연</div></div>
+      <div class="a-mini"><b>상해종합</b><div class="row"><span>일 횡보→</span><span>주 횡보→</span><span>월 상승↑</span></div><div class="conf">개장 전</div></div>
+      <div class="a-mini"><b>ChiNext</b><div class="row"><span>일 상승↑</span><span>주 상승↑</span><span>월 횡보→</span></div><div class="conf">개장 전</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ 보편 B ══════════════ -->
+<div class="variant">
+  <div class="v-head">보편 B — 전체 매트릭스</div>
+  <div class="v-concept">컨셉: 8시장 × 3지평 = 24칸을 표 하나로 전부. 강조점은 비교와 조망 — "지금 세계에서 어디가 덥고 어디가 식었나"를 스캔하는 화면.</div>
+  <div class="frame">
+    <table class="b-tbl">
+      <tr><th style="text-align:left;">시장</th><th>일간</th><th>주간</th><th>월간</th><th>기준</th></tr>
+      <tr class="home"><td class="mkt">코스피</td>
+        <td class="b-cell h1"><div class="dir">↑ 상승</div><div class="st">달아오름 {72}%</div></td>
+        <td class="b-cell h0"><div class="dir">↓ 하락</div><div class="st">차분 {88}%</div></td>
+        <td class="b-cell h0"><div class="dir">↓ 하락</div><div class="st">차분 {91}%</div></td>
+        <td><span class="badge badge--live">실시간</span></td></tr>
+      <tr class="home"><td class="mkt">코스닥</td>
+        <td class="b-cell h0"><div class="dir">→ 횡보</div><div class="st">차분 {64}%</div></td>
+        <td class="b-cell h0"><div class="dir">→ 횡보</div><div class="st">차분 {70}%</div></td>
+        <td class="b-cell h1"><div class="dir">→ 횡보</div><div class="st">달아오름 {58}%</div></td>
+        <td><span class="badge badge--live">실시간</span></td></tr>
+      <tr><td class="mkt">S&amp;P500</td>
+        <td class="b-cell h0"><div class="dir">↑ 상승</div><div class="st">차분 {81}%</div></td>
+        <td class="b-cell h0"><div class="dir">↑ 상승</div><div class="st">차분 {85}%</div></td>
+        <td class="b-cell h0"><div class="dir">↑ 상승</div><div class="st">차분 {90}%</div></td>
+        <td><span class="badge">간밤 확정</span></td></tr>
+      <tr><td class="mkt">나스닥</td>
+        <td class="b-cell h2"><div class="dir">↑ 상승</div><div class="st">과열 {77}%</div></td>
+        <td class="b-cell h1"><div class="dir">↑ 상승</div><div class="st">달아오름 {80}%</div></td>
+        <td class="b-cell h0"><div class="dir">↑ 상승</div><div class="st">차분 {86}%</div></td>
+        <td><span class="badge">간밤 확정</span></td></tr>
+      <tr><td class="mkt">닛케이225</td>
+        <td class="b-cell h0"><div class="dir">→ 횡보</div><div class="st">차분 {60}%</div></td>
+        <td class="b-cell h0"><div class="dir">↑ 상승</div><div class="st">차분 {74}%</div></td>
+        <td class="b-cell h0"><div class="dir">↑ 상승</div><div class="st">차분 {82}%</div></td>
+        <td><span class="badge">장중 지연</span></td></tr>
+      <tr><td class="mkt">그로스250</td>
+        <td class="b-cell h1"><div class="dir">↓ 하락</div><div class="st">달아오름 {66}%</div></td>
+        <td class="b-cell h0"><div class="dir">→ 횡보</div><div class="st">차분 {59}%</div></td>
+        <td class="b-cell h0"><div class="dir">↓ 하락</div><div class="st">차분 {75}%</div></td>
+        <td><span class="badge">장중 지연</span></td></tr>
+      <tr><td class="mkt">상해종합</td>
+        <td class="b-cell h0"><div class="dir">→ 횡보</div><div class="st">차분 {68}%</div></td>
+        <td class="b-cell h0"><div class="dir">→ 횡보</div><div class="st">차분 {73}%</div></td>
+        <td class="b-cell h0"><div class="dir">↑ 상승</div><div class="st">차분 {79}%</div></td>
+        <td><span class="badge">개장 전</span></td></tr>
+      <tr><td class="mkt">ChiNext</td>
+        <td class="b-cell h1"><div class="dir">↑ 상승</div><div class="st">달아오름 {71}%</div></td>
+        <td class="b-cell h0"><div class="dir">↑ 상승</div><div class="st">차분 {76}%</div></td>
+        <td class="b-cell h0"><div class="dir">→ 횡보</div><div class="st">차분 {65}%</div></td>
+        <td><span class="badge">개장 전</span></td></tr>
+    </table>
+    <div class="b-legend">
+      <span>칸 배경 = 열:</span>
+      <span><i class="h0"></i>차분</span>
+      <span><i class="h1"></i>달아오름</span>
+      <span><i class="h2"></i>과열</span>
+      <span>· 화살표 = 방향 · % = 확신도 · 굵은 왼쪽 선 = 홈 시장</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ 실험 A ══════════════ -->
+<div class="variant">
+  <div class="v-head">실험 A — 날씨 예보</div>
+  <div class="v-concept">컨셉: 시장 온도를 날씨 앱처럼. 오늘 하루의 "시간대별 온도 변화"(08~20시 장중 이력)를 전면에 — append 기록이 화면의 주인공. 하루의 흐름이 읽힌다.</div>
+  <div class="frame">
+    <div class="sec-label">오늘의 코스피</div>
+    <div class="w-today">
+      <div class="w-head"><b>코스피</b><span class="conf">{10:24} · 장중 실시간</span></div>
+      <div class="w-big">하락 속 반등 시도</div>
+      <div class="w-feel">주간·월간은 하락 — 우산은 아직 챙길 것</div>
+      <div class="w-strip">
+        <div class="h0">→<span class="t">08시</span><span class="sess">프리</span></div>
+        <div class="h0">→<span class="t">09시</span><span class="sess">정규</span></div>
+        <div class="h1">↑<span class="t">10시</span><span class="sess">정규</span></div>
+        <div class="h1">↑<span class="t">지금</span><span class="sess">정규</span></div>
+        <div class="h0"><span class="t">…</span><span class="sess"></span></div>
+        <div class="h0"><span class="t">15시</span><span class="sess">정규</span></div>
+        <div class="h0"><span class="t">16시</span><span class="sess">애프터</span></div>
+        <div class="h0"><span class="t">~20시</span><span class="sess">애프터</span></div>
+      </div>
+      <div class="w-longrow">
+        <div class="w-long"><b>주간</b> 하락 ↓ · 차분 <span class="conf">확신 {88}%</span></div>
+        <div class="w-long"><b>월간</b> 하락 ↓ · 차분 <span class="conf">확신 {91}%</span></div>
+      </div>
+    </div>
+    <div class="sec-label">오늘의 코스닥</div>
+    <div class="w-today">
+      <div class="w-head"><b>코스닥</b><span class="conf">{10:24} · 장중 실시간</span></div>
+      <div class="w-big">조용한 횡보</div>
+      <div class="w-strip">
+        <div class="h0">→<span class="t">08시</span><span class="sess">프리</span></div>
+        <div class="h0">→<span class="t">09시</span><span class="sess">정규</span></div>
+        <div class="h0">→<span class="t">10시</span><span class="sess">정규</span></div>
+        <div class="h0">→<span class="t">지금</span><span class="sess">정규</span></div>
+        <div class="h0"><span class="t">…</span><span class="sess"></span></div>
+        <div class="h0"><span class="t">15시</span><span class="sess">정규</span></div>
+        <div class="h0"><span class="t">16시</span><span class="sess">애프터</span></div>
+        <div class="h0"><span class="t">~20시</span><span class="sess">애프터</span></div>
+      </div>
+    </div>
+    <div class="sec-label">세계 날씨</div>
+    <div class="w-world">
+      <div class="w-tile h0"><b>S&amp;P500</b>상승 · 차분</div>
+      <div class="w-tile h2"><b>나스닥</b>상승 · 과열</div>
+      <div class="w-tile h0"><b>닛케이</b>횡보 · 차분</div>
+      <div class="w-tile h1"><b>그로스250</b>하락 · 달아오름</div>
+      <div class="w-tile h0"><b>상해</b>횡보 · 차분</div>
+      <div class="w-tile h1"><b>ChiNext</b>상승 · 달아오름</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ 실험 B ══════════════ -->
+<div class="variant">
+  <div class="v-head">실험 B — 온도 좌표 맵</div>
+  <div class="v-concept">컨셉: 방향×열 좌표평면 위에 8개 시장을 점으로. "세계 시장이 지금 어느 구석에 모여 있나"라는 분포 한 장 — 2축 설계를 시각 그대로 옮김.</div>
+  <div class="frame">
+    <div class="m-tabs"><div class="on">일간</div><div>주간</div><div>월간</div></div>
+    <div class="m-wrap">
+      <div>
+        <div class="m-grid">
+          <div class="m-row">
+            <div class="m-ylab">과열</div>
+            <div class="m-cell"></div>
+            <div class="m-cell"></div>
+            <div class="m-cell"><span class="m-dot">나스닥</span></div>
+          </div>
+          <div class="m-row">
+            <div class="m-ylab">달아오름</div>
+            <div class="m-cell"><span class="m-dot">그로스250</span></div>
+            <div class="m-cell"></div>
+            <div class="m-cell"><span class="m-dot home">코스피</span> <span class="m-dot">ChiNext</span></div>
+          </div>
+          <div class="m-row">
+            <div class="m-ylab">차분</div>
+            <div class="m-cell"></div>
+            <div class="m-cell"><span class="m-dot home">코스닥</span> <span class="m-dot">닛케이</span> <span class="m-dot">상해</span></div>
+            <div class="m-cell"><span class="m-dot">S&amp;P500</span></div>
+          </div>
+        </div>
+        <div class="m-xlab"><div class="pad"></div><div>하락</div><div>횡보</div><div>상승</div></div>
+      </div>
+      <div class="m-side">
+        <b>읽는 법</b><br>
+        오른쪽 아래 = 건강한 상승<br>
+        오른쪽 위 = 꼭지 위험<br>
+        왼쪽 위 = 패닉<br>
+        검은 점 = 홈 시장<br><br>
+        <span class="conf">{10:24} 기준 · 홈 실시간 · 해외 지연/확정</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ 사이드 노트 ══════════════ -->
+<div class="notes">
+  <h2>의도</h2>
+  4안 공통: 열(격렬함)은 배경 음영(흰→회→진회), 방향은 순수 기호(↑→↓)로 — 흑백에서도 두 축이 분리돼 보이게.
+  basis(실시간/간밤 확정/장중 지연/개장 전)를 모든 안에서 배지로 노출 — "이 온도가 얼마나 신선한가"는 신뢰의 핵심이라 숨기지 않는다.
+  보편 A는 홈 집중(옛 M2 후계), 보편 B는 조망·비교, 실험 A는 장중 이력(append 기록)을 주인공으로, 실험 B는 2축 설계 자체를 좌표로 시각화.
+  <h2>대안</h2>
+  확신도를 %말고 점 3개로 단순화하는 안. 파생 이름표("하락 속 반등 시도")를 빼고 축 값만 건조하게 보여주는 안.
+  해외 시장을 기본 접힘(펼치기)으로 두는 안. 실험 B에 시장 점의 최근 이동 꼬리(어제→오늘 위치)를 그리는 안.
+  <h2>미정</h2>
+  영역 prefix S(상태) 확정 여부. 시장 클릭 시 상세 화면(근거 지표 metrics·이력 차트) 설계.
+  프리/애프터 시간대(잠정 온도)의 시각적 구분 강도. 최종안은 4안 중 택1 또는 혼합.
+</div>
+
+</body>
+</html>

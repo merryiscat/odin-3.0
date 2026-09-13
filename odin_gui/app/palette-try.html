@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>팔레트 비교 — 시장 온도</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   시장 온도(S1) 팔레트 비교 — 같은 지층 스택을 4가지 색으로.
+   고르면 그 팔레트를 market-temp.html에 입힌다. 혼합 지시도 가능.
+   ═══════════════════════════════════════════════════════════════ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Pretendard', 'Malgun Gothic', sans-serif; background: #26292E; padding: 20px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 1400px; margin: 0 auto; }
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+/* 변형 패널 — 각자 자기 CSS 변수(팔레트)를 가진다 */
+.variant { border-radius: 12px; overflow: hidden; }
+.v-tag { font-size: 13px; font-weight: 800; padding: 10px 16px; background: #16181C; color: #E8EAEE; }
+.v-body { padding: 26px 30px 30px; background: var(--bg); }
+
+.m-name { text-align: center; font-size: 15px; font-weight: 800; letter-spacing: 7px; color: var(--ink); margin-bottom: 10px; }
+.stack { display: flex; flex-direction: column; gap: 7px; max-width: 430px; margin: 0 auto; }
+.box {
+  display: flex; align-items: center; gap: 13px;
+  border-radius: 10px; padding: 13px 16px;
+  background: var(--panel); border: 1px solid var(--line);
+}
+.box--rt { padding: 20px 16px; }
+.box.up   { background: linear-gradient(90deg, color-mix(in srgb, var(--up) var(--tint), transparent), color-mix(in srgb, var(--up) 4%, transparent)); border-left: 6px solid var(--up); }
+.box.down { background: linear-gradient(90deg, color-mix(in srgb, var(--down) var(--tint), transparent), color-mix(in srgb, var(--down) 4%, transparent)); border-left: 6px solid var(--down); }
+.box.flat { background: linear-gradient(90deg, color-mix(in srgb, var(--flat) var(--tint), transparent), color-mix(in srgb, var(--flat) 4%, transparent)); border-left: 6px solid var(--flat); }
+
+.hz { width: 48px; font-size: 11.5px; font-weight: 700; color: var(--muted); letter-spacing: .1em; flex: none; }
+.dir { font-size: 21px; font-weight: 800; display: flex; align-items: baseline; gap: 8px; }
+.box--rt .dir { font-size: 28px; }
+.dir.up { color: var(--up); } .dir.down { color: var(--down); } .dir.flat { color: var(--flat-ink); }
+.conf { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+
+.heat { margin-left: auto; text-align: right; flex: none; }
+.heat-bar { display: flex; gap: 3px; justify-content: flex-end; }
+.heat-bar i { width: 18px; height: 7px; border-radius: 3px; background: var(--heat-off); }
+.heat--0 i:nth-child(1) { background: var(--muted); }
+.heat--1 i:nth-child(-n+2) { background: var(--heat-warm); }
+.heat--2 i { background: var(--heat-hot); }
+.heat-nm { font-size: 10.5px; font-weight: 600; color: var(--muted); margin-top: 4px; }
+.heat--1 .heat-nm { color: var(--heat-warm); }
+.heat--2 .heat-nm { color: var(--heat-hot); font-weight: 800; }
+
+/* ── A. 퓨어 블랙 — OLED 계기판, 최대 대비 ── */
+.pA { --bg: #000000; --panel: #0B0B0D; --line: rgba(255,255,255,.10);
+      --ink: #FFFFFF; --muted: #8E8E93; --flat: #6E6E73; --flat-ink: #AEAEB2;
+      --up: #FF3B30; --down: #0A84FF; --heat-warm: #FFC13B; --heat-hot: #FF7A1A;
+      --heat-off: rgba(255,255,255,.12); --tint: 24%; }
+
+/* ── B. 웜 차콜 — 갈색 기운 도는 어두운 회색, 기계식 계기판 ── */
+.pB { --bg: #16130F; --panel: #201C16; --line: rgba(255,240,210,.09);
+      --ink: #F2EDE4; --muted: #978D7C; --flat: #837B6D; --flat-ink: #B5AC9C;
+      --up: #FF6B4A; --down: #5B8DEF; --heat-warm: #E8A33D; --heat-hot: #E2571B;
+      --heat-off: rgba(255,240,210,.10); --tint: 22%; }
+
+/* ── C. 라이트 클린 — 토스풍 밝은 회색 바탕, 절제된 포인트 ── */
+.pC { --bg: #F2F4F6; --panel: #FFFFFF; --line: rgba(0,0,0,.05);
+      --ink: #191F28; --muted: #8B95A1; --flat: #6B7684; --flat-ink: #4E5968;
+      --up: #F04452; --down: #3182F6; --heat-warm: #F5A623; --heat-hot: #FF6B2B;
+      --heat-off: rgba(0,0,0,.08); --tint: 11%; }
+
+/* ── D. 페이퍼 — 따뜻한 아이보리, 종이 인쇄물 느낌 ── */
+.pD { --bg: #F6F2EA; --panel: #FFFDF8; --line: rgba(70,55,30,.12);
+      --ink: #2A2418; --muted: #8A8272; --flat: #8A8272; --flat-ink: #5C5546;
+      --up: #D64545; --down: #3563C4; --heat-warm: #D98E23; --heat-hot: #C74A18;
+      --heat-off: rgba(70,55,30,.10); --tint: 13%; }
+</style>
+</head>
+<body>
+<div class="grid" id="grid"></div>
+
+<script>
+/* 코스피 예시 하나로 비교 (하락·하락·상승 + 열 섞임 — 상태가 다양해서 비교에 적합) */
+const ROWS = [
+  { hz: "월간",  dir: "down", heat: 0, conf: 91, big: false },
+  { hz: "주간",  dir: "down", heat: 2, conf: 88, big: false },
+  { hz: "실시간", dir: "up",   heat: 1, conf: 72, big: true },
+];
+const VARIANTS = [
+  { cls: "pA", tag: "A. 퓨어 블랙 — OLED 계기판, 최대 대비" },
+  { cls: "pB", tag: "B. 웜 차콜 — 갈색 기운 다크, 기계식 계기판" },
+  { cls: "pC", tag: "C. 라이트 클린 — 밝은 회색, 토스풍 절제" },
+  { cls: "pD", tag: "D. 페이퍼 — 따뜻한 아이보리, 인쇄물 느낌" },
+];
+const DIRNM = { up: "상승", flat: "횡보", down: "하락" };
+const DIRAR = { up: "↑", flat: "→", down: "↓" };
+const HEATNM = ["차분", "달아오름", "과열"];
+
+const box = r => `<div class="box ${r.dir}${r.big ? ' box--rt' : ''}">
+  <div class="hz">${r.hz}</div>
+  <div class="dir ${r.dir}">${DIRAR[r.dir]} ${DIRNM[r.dir]} <span class="conf">확신 ${r.conf}%</span></div>
+  <div class="heat heat--${r.heat}">
+    <div class="heat-bar"><i></i><i></i><i></i></div>
+    <div class="heat-nm">${HEATNM[r.heat]}</div>
+  </div>
+</div>`;
+
+document.getElementById("grid").innerHTML = VARIANTS.map(v => `
+  <div class="variant ${v.cls}">
+    <div class="v-tag">${v.tag}</div>
+    <div class="v-body">
+      <div class="m-name">코스피</div>
+      <div class="stack">${ROWS.map(box).join("")}</div>
+    </div>
+  </div>`).join("");
+</script>
+</body>
+</html>

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시장 온도 — Odin 3.0</title>
+<!-- 폰트: SUIT(본문) + IBM Plex Mono(숫자) / 데이터: supabase-js(3.0 DB 읽기 전용) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   시장 온도(S1) — v10 "Koyfin 문법" (2026-09-14, 사용자가 레퍼런스 지정)
+   - 구조: 다크 크롬(상단바+사이드바) + 밝은 캔버스 + 흰 패널(얇은 테두리·4px).
+     밀도 높게, 패널 머리줄 + 촘촘한 본문. 해외 시장은 타일 대신 표.
+   - 데이터색은 한국 관례 유지: 상승 빨강 / 하락 파랑 (Koyfin의 녹/적은 안 따름).
+   - 데이터: 국내 탭 = Supabase 실데이터(v9에서 연결). 미국·해외는 목데이터 라벨.
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  /* 크롬(어두운 틀) */
+  --chrome: #17181C; --chrome-2: #26282E; --chrome-ink: #E8EAED; --chrome-muted: #9AA0A8;
+  /* 캔버스(밝은 바탕)와 패널 */
+  --canvas: #F4F5F7; --panel: #FFFFFF; --line: #E3E5E8;
+  --ink: #191F28; --muted: #6B7684; --accent: #2F6FED;
+  /* 데이터색 (한국 관례) */
+  --up: #F04452; --down: #3182F6; --flat: #8B95A1; --hot: #E8590C;
+  --live: #17A05D; --seg: #E9EBEE;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body { font-family: 'SUIT Variable', SUIT, 'Malgun Gothic', sans-serif;
+       background: var(--canvas); color: var(--ink); display: flex; flex-direction: column; }
+.mono { font-family: 'IBM Plex Mono', Consolas, monospace; font-variant-numeric: tabular-nums; }
+
+/* ── 상단바 (다크 크롬, 전체 폭) ── */
+.top { height: 48px; background: var(--chrome); color: var(--chrome-ink);
+       display: flex; align-items: center; padding: 0 20px; gap: 24px; flex: none; }
+.logo { font-size: 14px; font-weight: 800; letter-spacing: .35em; }
+.clock { font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 12px; color: var(--chrome-muted); }
+.clock .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+              background: var(--live); margin-right: 8px; }
+.tabs { margin-left: auto; display: flex; gap: 4px; }
+.tab { background: none; border: 0; padding: 6px 12px; cursor: pointer; font-family: inherit;
+       font-size: 12px; font-weight: 500; color: var(--chrome-muted); border-radius: 4px; }
+.tab.on { background: var(--chrome-2); color: var(--chrome-ink); font-weight: 700; }
+
+/* ── 아래: 사이드바 + 본문 ── */
+.wrap { flex: 1; display: flex; min-height: 0; }
+.side { width: 192px; flex: none; background: var(--chrome); padding: 16px 0; overflow-y: auto; }
+.nav-group { font-size: 10px; font-weight: 500; letter-spacing: .16em; color: var(--chrome-muted);
+             padding: 14px 20px 6px; text-transform: uppercase; }
+.nav { display: block; font-size: 13px; padding: 7px 20px; color: var(--chrome-muted);
+       font-weight: 400; text-decoration: none; cursor: default; border-left: 2px solid transparent; }
+.nav.on { color: var(--chrome-ink); font-weight: 700; background: var(--chrome-2);
+          border-left-color: var(--accent); }
+
+.main { flex: 1; min-width: 0; overflow-y: auto; padding: 16px; }
+.note { font-size: 11px; color: var(--chrome-muted); }
+
+/* ── 패널 (Koyfin 문법: 흰 바탕 + 얇은 테두리 + 4px + 머리줄) ── */
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(430px, 1fr)); gap: 12px; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.p-head { display: flex; align-items: baseline; gap: 12px; padding: 10px 14px;
+          border-bottom: 1px solid var(--line); }
+.p-title { font-size: 13px; font-weight: 800; letter-spacing: .02em; }
+.p-sub { font-size: 11px; color: var(--muted); font-weight: 400; }
+/* Koyfin 문법: 숫자도 본문체(그로테스크) + tabular 숫자폭 */
+.p-px { font-variant-numeric: tabular-nums; font-size: 16px; font-weight: 700; margin-left: auto; }
+.p-chg { font-variant-numeric: tabular-nums; font-size: 12px; font-weight: 700; }
+.c-up { color: var(--up); } .c-down { color: var(--down); } .c-flat { color: var(--flat); }
+.p-body { padding: 14px; }
+
+/* 섹션 라벨(패널 안 작은 제목) */
+.sec { font-size: 10.5px; font-weight: 600; letter-spacing: .1em; color: var(--muted);
+       text-transform: uppercase; margin: 14px 0 6px; }
+.sec:first-child { margin-top: 0; }
+
+/* 상태 워드 — 밀도 높은 문법에 맞게 32px */
+.word { font-weight: 800; letter-spacing: -0.01em; line-height: 1.1; font-size: 30px; }
+.word.up { color: var(--up); } .word.down { color: var(--down); }
+.word.flat { color: var(--flat); } .word.hot { color: var(--hot); }
+.sectors { font-size: 13px; font-weight: 700; margin-top: 4px; }
+.sub { font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 12px; color: var(--muted);
+       margin-left: 10px; white-space: nowrap; display: inline-block; }
+.money { font-size: 12px; color: var(--muted); margin-top: 8px; }
+.money b { color: var(--ink); font-family: 'IBM Plex Mono', Consolas, monospace; }
+
+.state-row { display: flex; align-items: flex-start; gap: 16px; }
+.spark { margin-left: auto; flex: none; text-align: right; }
+.spark svg { display: block; }
+.spark-nm { font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+/* 폭 바 */
+.b-bar { display: flex; gap: 2px; }
+.b-bar i { flex: 1 1 0; height: 5px; border-radius: 1px; background: var(--seg); }
+.b-bar i.d { background: var(--down); }
+.b-bar i.u { background: var(--up); }
+.b-nm { font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 11px; color: var(--muted); margin-top: 5px; }
+
+/* 최근 10거래일 상태 띠 */
+.strip { display: flex; gap: 2px; }
+.strip i { flex: 1 1 0; height: 14px; border-radius: 1px; background: var(--seg); cursor: default; }
+.strip i.up { background: var(--up); } .strip i.down { background: var(--down); }
+.strip i.flat { background: var(--flat); } .strip i.hot { background: var(--hot); }
+.strip-nm { font-size: 11px; color: var(--muted); margin-top: 5px; line-height: 1.5; }
+
+.pending { font-size: 12px; color: var(--muted); }
+
+/* 해외 시장 — Koyfin식 표 */
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl td { padding: 8px 14px; font-size: 12.5px; border-top: 1px solid var(--line); }
+.tbl tr:first-child td { border-top: 0; }
+.tbl .r { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+.tbl .st { text-align: right; font-weight: 700; font-size: 12px; }
+.world-panel { margin-top: 12px; }
+</style>
+</head>
+<body>
+
+<!-- 상단바 (다크 크롬) -->
+<header class="top">
+  <span class="logo">ODIN</span>
+  <span class="clock" id="clock"></span>
+  <div class="tabs" id="tabs"></div>
+</header>
+
+<div class="wrap">
+  <!-- 사이드바 (다크 크롬) — 시장 온도만 실화면, 나머지 자리표시 -->
+  <aside class="side">
+    <a class="nav" href="#">홈</a>
+    <div class="nav-group">모델</div>
+    <a class="nav on" href="#">시장 온도</a>
+    <a class="nav" href="#">주목 리스트</a>
+    <a class="nav" href="#">매수매도 모델</a>
+    <div class="nav-group">자산</div>
+    <a class="nav" href="#">계좌</a>
+  </aside>
+
+  <main class="main">
+    <div class="grid" id="stacks"></div>
+    <div class="panel world-panel">
+      <div class="p-head"><span class="p-title">해외 시장</span><span class="p-sub">목데이터 — 수집 전</span></div>
+      <table class="tbl" id="tiles"></table>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ═══════════ 3.0 DB 접속 (읽기 전용 공개 키 — 쓰기는 RLS로 잠김) ═══════════ */
+const SB_URL = "https://bqqxlzbbdeqryecrcvim.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJxcXhsemJiZGVxcnllY3JjdmltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwNzEzMjksImV4cCI6MjEwMzY0NzMyOX0.XuP1ud0Za8r8keAKse5TIvpnDKFQCmJH71eQ9rVkWgs";
+
+/* 상태 어휘 v4 (db/state_market_temp.sql과 동일) — 코드 → 문구·색 계열 */
+const STATE = {
+  crash:    { nm: "급락",       fam: "down" },
+  surge:    { nm: "급등",       fam: "up"   },
+  theme_up: { nm: "테마주상승", fam: "up"   },
+  selloff:  { nm: "투매",       fam: "down" },
+  fire:     { nm: "불장",       fam: "hot"  },
+  up:       { nm: "상승",       fam: "up"   },
+  down:     { nm: "하락",       fam: "down" },
+  flat:     { nm: "횡보",       fam: "flat" },
+};
+
+/* 미국 탭 목데이터 (실제 구성은 한국 검증 후 — pending #9) */
+const MOCK_US = [
+  { name: "S&P500", px: "6,712.40", chg: +0.83, state: "up",   b: null, closes: null },
+  { name: "NASDAQ", px: "24,891.55", chg: +1.94, state: "fire", money: 1.6, b: null, closes: null },
+];
+const MOCK_TILES = [
+  { name: "닛케이225", chg: +0.41, state: "up" },
+  { name: "그로스250", chg: -0.88, state: "down" },
+  { name: "상해종합",  chg: +0.12, state: "flat" },
+  { name: "ChiNext",  chg: -1.73, state: "down" },
+];
+
+/* ═══════════ 그리기 도우미 ═══════════ */
+function chgHtml(chg, cls) {
+  const c = chg > 0.05 ? "c-up" : chg < -0.05 ? "c-down" : "c-flat";
+  const s = chg > 0 ? "+" : "";
+  return `<span class="${cls} ${c}">${s}${chg.toFixed(2)}%</span>`;
+}
+
+function sparkHtml(closes) {
+  if (!closes || closes.length < 2) return "";
+  const W = 132, H = 34;
+  const min = Math.min(...closes), max = Math.max(...closes), span = (max - min) || 1;
+  const xy = closes.map((p, i) =>
+    `${(i / (closes.length - 1) * W).toFixed(1)},${(H - 3 - (p - min) / span * (H - 6)).toFixed(1)}`).join(" ");
+  const col = closes[closes.length - 1] >= closes[0] ? "var(--up)" : "var(--down)";
+  return `<div class="spark"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+    <polyline points="${xy}" fill="none" stroke="${col}" stroke-width="1.5"/>
+  </svg><div class="spark-nm">최근 30일 종가</div></div>`;
+}
+
+function breadthHtml(b) {
+  if (!b || !b.total) return "";
+  const flat = Math.max(b.total - b.up - b.down, 0);
+  const segs = Array(b.down).fill('<i class="d"></i>').join("")
+             + Array(flat).fill("<i></i>").join("")
+             + Array(b.up).fill('<i class="u"></i>').join("");
+  return `<div class="sec">업종 대장주 폭</div>
+    <div class="b-bar">${segs}</div>
+    <div class="b-nm">하락 ${b.down} · 보합 ${flat} · 상승 ${b.up} / ${b.total}</div>`;
+}
+
+function stripHtml(hist) {
+  if (!hist || !hist.length) return "";
+  const cells = hist.map(h => {
+    const S = STATE[h.state] || STATE.flat;
+    return `<i class="${S.fam}" title="${h.d} ${S.nm}"></i>`;
+  }).join("");
+  return `<div class="sec">최근 10거래일</div>
+    <div class="strip">${cells}</div>
+    <div class="strip-nm">${hist.map(h => (STATE[h.state]||STATE.flat).nm).join(" · ")}</div>`;
+}
+
+function marketCard(mk) {
+  const S = STATE[mk.state] || STATE.flat;
+  const sectors = mk.sectors && mk.sectors.length
+    ? `<div class="sectors word ${S.fam}" style="font-size:13px">${mk.sectors.join("·")}</div>` : "";
+  const money = mk.money
+    ? `<div class="money">거래대금 — 평소의 <b>${mk.money.toFixed(1)}배</b>${mk.money >= 1.37 ? " (폭증)" : ""}</div>` : "";
+  return `<div class="panel">
+    <div class="p-head">
+      <span class="p-title">${mk.name}</span>
+      <span class="p-sub">${mk.mock ? "목데이터" : "종가 기준"}</span>
+      <span class="p-px">${mk.px}</span><span>${chgHtml(mk.chg, "p-chg")}</span>
+    </div>
+    <div class="p-body">
+      <div class="sec">오늘의 상태</div>
+      <div class="state-row">
+        <div>
+          <span class="word ${S.fam}">${S.nm}</span><span class="sub">${chgHtml(mk.chg, "")}</span>
+          ${sectors}${money}
+        </div>
+        ${sparkHtml(mk.closes)}
+      </div>
+      ${breadthHtml(mk.b)}
+      ${stripHtml(mk.hist)}
+      <div class="sec">주간</div>
+      <div class="pending">설계 중 — 국면(상승장·하락장·대공황·과열)과 매도 태도가 여기 표시될 예정</div>
+    </div>
+  </div>`;
+}
+
+function tileRow(t) {
+  const S = STATE[t.state] || STATE.flat;
+  return `<tr><td>${t.name}</td><td class="r">${chgHtml(t.chg, "")}</td>
+    <td class="st word ${S.fam}" style="font-size:12px">${S.nm}</td></tr>`;
+}
+
+/* ═══════════ 실데이터 조회 → 카드 재료로 변환 (v9와 동일 로직) ═══════════ */
+async function loadKR() {
+  const sb = window.supabase.createClient(SB_URL, SB_KEY);
+  const [st, ix] = await Promise.all([
+    sb.from("state_market_temp")
+      .select("as_of,market,state_code,state_sectors,breadth_up,breadth_down,breadth_total,metrics")
+      .eq("model_id", "rule-temp-rt-v1").eq("scope", "rt").eq("basis", "eod")
+      .order("as_of", { ascending: false }).limit(40),
+    sb.from("raw_index_ohlc")
+      .select("date,market,close")
+      .in("market", ["KR-KOSPI", "KR-KOSDAQ"])
+      .order("date", { ascending: false }).limit(70),
+  ]);
+  if (st.error) throw st.error;
+  if (ix.error) throw ix.error;
+
+  const out = [];
+  for (const m of ["KR-KOSPI", "KR-KOSDAQ"]) {
+    const rows = st.data.filter(r => r.market === m);
+    const idx  = ix.data.filter(r => r.market === m);
+    if (!rows.length || idx.length < 2) continue;
+    const latest = rows[0];
+    out.push({
+      name: m.replace("KR-", ""),
+      px: Number(idx[0].close).toLocaleString("ko-KR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      chg: (Number(idx[0].close) / Number(idx[1].close) - 1) * 100,
+      closes: idx.slice(0, 30).map(r => Number(r.close)).reverse(),
+      state: latest.state_code,
+      sectors: latest.state_sectors || null,
+      money: latest.metrics && latest.metrics.money_ratio ? Number(latest.metrics.money_ratio) : null,
+      b: latest.breadth_total
+        ? { up: latest.breadth_up, down: latest.breadth_down, total: latest.breadth_total } : null,
+      hist: rows.slice(0, 10).reverse().map(r => ({ d: String(r.as_of).slice(5, 10), state: r.state_code })),
+      asof: String(latest.as_of).slice(0, 10),
+    });
+  }
+  if (!out.length) throw new Error("실데이터 없음");
+  return out;
+}
+
+/* ═══════════ 렌더 ═══════════ */
+let KR = null, KR_ERR = false;
+
+function render(key) {
+  const tabs = { kr: "국내주식", us: "미국주식" };
+  document.getElementById("tabs").innerHTML = Object.keys(tabs).map(k =>
+    `<button class="tab${k === key ? " on" : ""}" onclick="render('${k}')">${tabs[k]}</button>`).join("");
+
+  if (key === "kr" && KR) {
+    document.getElementById("clock").innerHTML =
+      `<span class="dot"></span>${KR[0].asof} 종가 기준 <span class="note">— 장중 1분 갱신은 수집 파이프라인 완성 후</span>`;
+    document.getElementById("stacks").innerHTML = KR.map(marketCard).join("");
+  } else if (key === "kr") {
+    document.getElementById("clock").innerHTML =
+      `<span class="dot" style="background:var(--flat)"></span>${KR_ERR ? "DB 연결 안 됨 — 목데이터 표시" : "불러오는 중"}`;
+    document.getElementById("stacks").innerHTML =
+      KR_ERR ? MOCK_US.map(m => marketCard({ ...m, mock: true })).join("") : "";
+  } else {
+    document.getElementById("clock").innerHTML =
+      `<span class="dot" style="background:var(--flat)"></span>목데이터 <span class="note">— 미국 실제 구성은 한국 검증 후 (보류 9번)</span>`;
+    document.getElementById("stacks").innerHTML = MOCK_US.map(m => marketCard({ ...m, mock: true })).join("");
+  }
+  document.getElementById("tiles").innerHTML = MOCK_TILES.map(tileRow).join("");
+}
+
+const first = new URLSearchParams(location.search).get("market") === "us" ? "us" : "kr";
+render(first);
+loadKR().then(d => { KR = d; if (first === "kr") render("kr"); })
+        .catch(e => { console.warn("실데이터 조회 실패:", e.message || e); KR_ERR = true; if (first === "kr") render("kr"); });
+</script>
+</body>
+</html>
