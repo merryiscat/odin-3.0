@@ -17,10 +17,17 @@ Supabase(새 3.0 프로젝트, 빈 통)에 만들 **표 정의 SQL**을 둔다.
 - `dim_stock_profile` — 회사 정보(무거운 텍스트, DART 기업개황).
 - `dim_sector` — 업종 번호(KSIC) → 큰 묶음 이름 번역표. 채우기 로직은 `seed_dim_sector.sql`.
 
+## 실시간 판별기 표 5개 (2026-09-12 설계 — 상세는 `state_module/README.md`)
+- `raw_market_snapshot` — 1분 시세 원천. 지수·바스켓 종목·예상지수·미선물을 kind로 구분해 한 표에.
+- `dim_basket` — 실시간 수집 대상 명부. leader(업종 대장주, 폭·역행 측정) / proxy(시총 상위, 장외 지수 대용).
+- `state_params` — 공용 판정 파라미터. bg_daily(아침 배경) / intraday(1분). 모든 예측모델이 같은 입력.
+- `state_market_temp` — 판정 output. 사다리(대공황~과열)+꼬리표, model_id로 예측모델 구분, 매분 append.
+- `dim_model` — 마트 모델 명부. 예측·매매·기준선(무작위, 내일=오늘) 모두 등록.
+
 ### 예정 표
 - **테마**(뉴스 단계에서): `dim_theme`(테마 목록) + `raw_stock_theme`(종목↔테마·출처·시점·점수).
   themes를 dim_stock 칸으로 두지 않기로 결정(2026-08-31) — 계속 수집·변하는 데이터라 별도 표.
-- `state_*` 국면 표, `order_intent` 주문 의도 표, 체결 기록 표.
+- `raw_index_ohlc` 지수 일봉(배경·백분위 재료), `order_intent` 주문 의도 표, 체결 기록 표.
 
 ## 관리 도구 (직접 만들지 말 것)
 - 표 보기/편집 → **Supabase Studio**.
