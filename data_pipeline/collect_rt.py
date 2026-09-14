@@ -102,9 +102,9 @@ def collect_stocks(kis: Kis, minute: datetime, basket: list[tuple[str, str]]) ->
     for i in range(0, len(codes), MULTI_MAX):
         chunk = codes[i:i + MULTI_MAX]
         params = {}
-        for n in range(1, MULTI_MAX + 1):   # 공식 예제처럼 30칸을 다 보내고 안 쓰는 칸은 빈값
-            params[f"FID_COND_MRKT_DIV_CODE_{n}"] = "J" if n <= len(chunk) else ""
-            params[f"FID_INPUT_ISCD_{n}"] = chunk[n - 1] if n <= len(chunk) else ""
+        for n in range(1, len(chunk) + 1):   # 쓰는 칸만 보낸다 — 빈 칸을 빈값으로 보내면
+            params[f"FID_COND_MRKT_DIV_CODE_{n}"] = "J"   # OPSQ2002 INVALID INPUT(빈 시장구분 거부)이 난다
+            params[f"FID_INPUT_ISCD_{n}"] = chunk[n - 1]  # (2026-09-15 실측 — 30칸 꽉 찬 묶음만 성공했었음)
         try:
             out = kis.get("/uapi/domestic-stock/v1/quotations/intstock-multprice", "FHKST11300006", params).get("output") or []
         except KisError as e:
