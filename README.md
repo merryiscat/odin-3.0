@@ -20,9 +20,7 @@
 
 ## 문서
 
-- [docs/index.md](docs/index.md) — 문서 안내판
-- [docs/status.md](docs/status.md) — 지금 하는 일 / 다음 할 일
-- [docs/pending.md](docs/pending.md) — 미뤄둔 안건과 다시 볼 시점
+모듈별 설명은 각 폴더의 README에 있습니다. 진행 상황 기록(작업 보드·보류 안건)은 공개하지 않습니다.
 
 ## 시작하기
 
