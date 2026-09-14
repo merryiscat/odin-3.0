@@ -16,7 +16,7 @@ create table if not exists raw_index_ohlc (
     low           numeric,                          -- 저가 ("장중 -2.5% 터치" 검증용)
     close         numeric not null,                 -- 종가
     volume        bigint,                           -- 거래량
-    trade_value   bigint,                           -- 거래대금(원) — 열 지표 "돈 몰림"의 재료
+    trade_value   bigint,                           -- 거래대금(백만원 — KIS 지수 원값 단위. 2026-09-14 실측 정정, 옛 주석 "원"은 오류) — "돈 몰림"의 재료
     source        text not null default 'kis',      -- 출처: kis / old_odin(복사) 등
     created_at    timestamptz not null default now(),
 

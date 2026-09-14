@@ -25,7 +25,7 @@ create table if not exists raw_market_snapshot (
     price         numeric not null,                 -- 현재가(지수는 포인트, 종목은 원)
     change_pct    numeric,                          -- 전일 종가 대비 등락률(%). API가 주면 그대로, 없으면 계산해 채움
     acc_volume    bigint,                           -- 당일 누적 거래량(주면 저장, 없으면 NULL)
-    acc_amount    bigint,                           -- 당일 누적 거래대금(원 단위, 주면 저장)
+    acc_amount    bigint,                           -- 당일 누적 거래대금(KIS 원값 그대로: 종목=원, 지수=백만원. 주면 저장)
 
     -- ── 출처 메타 ────────────────────────────────────────────────────────
     source        text not null default 'kis',      -- 어느 API에서 왔나(kis 등)
