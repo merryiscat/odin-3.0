@@ -53,6 +53,8 @@ body { font-family: 'SUIT Variable', SUIT, 'Malgun Gothic', sans-serif;
        font-weight: 400; text-decoration: none; cursor: default; border-left: 2px solid transparent; }
 .nav.on { color: var(--chrome-ink); font-weight: 700; background: var(--chrome-2);
           border-left-color: var(--accent); }
+/* 묶음 없이 홀로 서는 항목(마켓·계좌) — 앞 묶음과 간격만 띄운다 */
+.nav.top { margin-top: 14px; }
 
 .main { flex: 1; min-width: 0; overflow-y: auto; padding: 16px; }
 .note { font-size: 11px; color: var(--chrome-muted); }
@@ -127,13 +129,19 @@ body { font-family: 'SUIT Variable', SUIT, 'Malgun Gothic', sans-serif;
 <div class="wrap">
   <!-- 사이드바 (다크 크롬) — 시장 온도만 실화면, 나머지 자리표시 -->
   <aside class="side">
-    <a class="nav" href="#">홈</a>
-    <div class="nav-group">모델</div>
+    <div class="nav-group">파이프라인</div>
     <a class="nav on" href="#">시장 온도</a>
-    <a class="nav" href="#">주목 리스트</a>
-    <a class="nav" href="#">매수매도 모델</a>
-    <div class="nav-group">자산</div>
-    <a class="nav" href="#">계좌</a>
+    <a class="nav" href="#">매매리스트</a>
+    <a class="nav" href="#">매매모델</a>
+    <a class="nav top" href="#">마켓</a>
+    <div class="nav-group">연구소</div>
+    <a class="nav" href="#">모델</a>
+    <a class="nav" href="#">실험</a>
+    <a class="nav top" href="#">계좌</a>
+    <div class="nav-group">리서치</div>
+    <a class="nav" href="#">추적그래프</a>
+    <a class="nav" href="#">매매일지</a>
+    <a class="nav" href="#">주간보고서</a>
   </aside>
 
   <main class="main">
