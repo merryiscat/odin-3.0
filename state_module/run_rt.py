@@ -21,8 +21,9 @@ import sys
 import time as systime
 from datetime import date, datetime, time, timedelta
 
+import w_rules   # 주간 판정도 장중 실시간으로 같이 돌린다(README "갱신 = 실시간" 확정, 2026-09-15 연결)
 from rt_data import (KST, MARKETS, day_start, has_row_since, index_amount_history, kst_iso, latest_by_code,
-                     load_leaders, load_ohlc, load_snapshots, restore_hold)
+                     load_leaders, load_ohlc, load_ohlc_hl, load_snapshots, restore_hold)
 from rt_params import CALC_VER, bg_daily, intraday_money_ratio
 from rt_rules import MODEL_ID, RULE_VER, StateHold, breadth_from_changes, classify
 from supa import Supa
@@ -30,6 +31,20 @@ from supa import Supa
 OPEN, CLOSE = time(9, 0), time(15, 30)
 PROCESS_DELAY_S = 25     # 수집기가 매분 :03초에 받아 쓰므로, 여유를 두고 :25초에 판정
 STALE_MINUTES = 3        # 지수 시세가 이보다 오래됐으면 그 분은 판정하지 않는다(낡은 값으로 '살아있음' 위장 금지)
+
+
+def weekly_bg(ohlc: list[dict], today: date) -> dict | None:
+    """어제까지의 일봉으로 주간 판정 배경(하루 불변)을 만든다. 일봉이 5일 미만이면 주간 판정 불가(None)."""
+    if len(ohlc) < w_rules.WINDOW_DAYS:
+        return None
+    ranges = w_rules.day_ranges(ohlc)
+    thr, hist_n = w_rules.vol_threshold(w_rules.avg_ranges(ranges), today.isoformat())
+    return {
+        "prev_close": float(ohlc[-1]["close"]),                      # 어제 종가
+        "prev5_close": float(ohlc[-w_rules.WINDOW_DAYS]["close"]),   # 5거래일 전 종가(오늘 포함 창의 시작점)
+        "last4_ranges": [v for _, v in ranges[-(w_rules.WINDOW_DAYS - 1):]],   # 직전 4일 하루 진폭
+        "rng_threshold": thr, "rng_hist_n": hist_n,
+    }
 
 
 class Ctx:
@@ -44,6 +59,19 @@ class Ctx:
         self.bg = {m: bg_daily(load_ohlc(db, m, today - timedelta(days=1)), today.isoformat()) for m in MARKETS}
         self.amount_hist = index_amount_history(db, today)
         self.hold = {m: StateHold(current=restore_hold(db, m, today) if restore else None) for m in MARKETS}
+        # 주간 판정 배경(하루 동안 불변): 전일 종가·5거래일 전 종가·직전 4일 진폭·1년 진폭 기준
+        self.wbg = {m: weekly_bg(load_ohlc_hl(db, m, today - timedelta(days=1)), today) for m in MARKETS}
+        # 오늘 장중 지수 고가·저가 추적(1분 가격 기준). 라이브 재시작이면 오늘 쌓인 시세로 복원,
+        # 재생(replay)이면 빈 채로 시작해 분 순서대로 채운다(미래 참조 금지).
+        self.day_hilo: dict[str, list[float]] = {}
+        if restore:
+            snaps = load_snapshots(db, datetime.combine(today, OPEN, KST),
+                                   datetime.now(KST) + timedelta(minutes=1), kinds=("index",))
+            for s in snaps:
+                if s.get("price") is not None:
+                    hl = self.day_hilo.setdefault(s["market"], [float(s["price"]), float(s["price"])])
+                    hl[0] = max(hl[0], float(s["price"]))
+                    hl[1] = min(hl[1], float(s["price"]))
 
     def same_time_amounts(self, market: str, hhmm: str) -> list[float]:
         days = self.amount_hist.get(market, {})
@@ -120,9 +148,34 @@ def judge_minute(ctx: Ctx, minute: datetime, snaps: list[dict]) -> None:
             "breadth_up": b.up, "breadth_down": b.down, "breadth_total": b.n, "label_kr": out.label_kr,
             "metrics": dict(out.metrics, basket=basket, money_hist_days=hist_days), "rule_ver": RULE_VER,
         })
+        # ── 주간 판정(초안 모델)도 매분 같이 — 재료는 1분 지수 가격으로 만든 오늘 고저·5일 누적·진폭 ──
+        weekly_note = ""
+        wb = ctx.wbg.get(market)
+        if wb is not None:
+            px = float(ix["price"])
+            hl = ctx.day_hilo.setdefault(market, [px, px])   # [고가, 저가]
+            hl[0] = max(hl[0], px)
+            hl[1] = min(hl[1], px)
+            low_pct = w_rules.pct_change(hl[1], wb["prev_close"])
+            chg5 = w_rules.pct_change(px, wb["prev5_close"])
+            rng_today = (hl[0] - hl[1]) / wb["prev_close"] * 100.0
+            r4 = wb["last4_ranges"]
+            rng5 = (sum(r4) + rng_today) / w_rules.WINDOW_DAYS if len(r4) == w_rules.WINDOW_DAYS - 1 else None
+            wj = w_rules.classify(low_pct, chg5, rng5, wb["rng_threshold"])
+            wj.metrics["chg_today"] = round(w_rules.pct_change(px, wb["prev_close"]), 4)
+            wj.metrics["rng_hist_n"] = wb["rng_hist_n"]
+            temp_rows.append({
+                "ts": kst_iso(datetime.now(KST)), "as_of": kst_iso(ix_ts), "market": market,
+                "model_id": w_rules.MODEL_ID, "scope": "w", "horizon": "now", "basis": "live",
+                "state_code": wj.state_code, "state_sectors": None, "state_conf": None,
+                "breadth_up": None, "breadth_down": None, "breadth_total": None,
+                "label_kr": wj.label_kr, "metrics": wj.metrics, "rule_ver": w_rules.RULE_VER,
+            })
+            weekly_note = f" · 주간 {wj.label_kr}"
+
         held = f" (원판정 {raw.state_code}, {out.metrics.get('pending_minutes')}분째)" if raw.state_code != out.state_code else ""
         mr = "-" if money_ratio is None else f"{money_ratio:.2f}"
-        print(f"  [{hhmm}] {market}: {out.label_kr}{held} · 지수 {chg:+.2f}% · 폭 {b.down}↓/{b.up}↑/{b.n} · 대금배율 {mr}")
+        print(f"  [{hhmm}] {market}: {out.label_kr}{held} · 지수 {chg:+.2f}% · 폭 {b.down}↓/{b.up}↑/{b.n} · 대금배율 {mr}{weekly_note}")
     emit(ctx, "state_params", params_rows)
     emit(ctx, "state_market_temp", temp_rows)
 

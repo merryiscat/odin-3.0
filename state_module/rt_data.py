@@ -45,6 +45,15 @@ def load_ohlc(db: Supa, market: str, until: date, days: int = 420) -> list[dict]
     })
 
 
+def load_ohlc_hl(db: Supa, market: str, until: date) -> list[dict]:
+    """지수 일봉 전체(고가·저가 포함, until 포함, 오름차순) — 주간 판정(w_rules)의 진폭 계산용.
+    1년 진폭 분포를 만들려면 판정일보다 1년 이상 앞부터 필요해서 전체를 읽는다."""
+    return db.select("raw_index_ohlc", {
+        "select": "date,high,low,close", "market": f"eq.{market}",
+        "date": f"lte.{until.isoformat()}", "order": "date",
+    })
+
+
 def load_snapshots(db: Supa, start: datetime, end: datetime, kinds=("index", "stock")) -> list[dict]:
     """[start, end) 구간의 1분 시세."""
     return db.select("raw_market_snapshot", {
