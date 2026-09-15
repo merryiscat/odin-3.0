@@ -12,12 +12,15 @@
 /* ═══════════════════════════════════════════════════════════════
    시장 온도(S1) — v10 "Koyfin 문법" (2026-09-14, 사용자가 레퍼런스 지정)
    - 구조: 다크 크롬(상단바+사이드바) + 밝은 캔버스 + 흰 패널(얇은 테두리·4px).
-     밀도 높게, 패널 머리줄 + 촘촘한 본문. 해외 시장은 타일 대신 표.
+     밀도 높게, 패널 머리줄 + 촘촘한 본문.
    - 데이터색은 한국 관례 유지: 상승 빨강 / 하락 파랑 (Koyfin의 녹/적은 안 따름).
-   - 데이터: 국내 탭 = Supabase 실데이터(v9에서 연결). 미국·해외는 목데이터 라벨.
+   - 데이터: 국내 탭 = Supabase 실데이터(v9에서 연결). 미국 탭은 목데이터 라벨.
    - v11 (2026-09-14): 장중엔 실시간 판정(basis=live, 1분)을 읽고 1분마다 다시 읽음.
      끊김·장 마감(종가 판정 전)·종가 기준은 상단바에만 표시. 지속 시간·전환 대기 줄 추가.
-     사용자 검수로 뺌: 카드 머리줄 꼬리표, 거래대금 배율 줄, 폭·10거래일 소제목, 해외 시장 머리줄.
+     사용자 검수로 뺌: 카드 머리줄 꼬리표, 거래대금 배율 줄, 폭·10거래일 소제목, 해외 시장 머리줄,
+     (2차) 10거래일 상태 띠, "오늘의 상태" 소제목. (3차) 해외 시장 표 전체(목데이터였음).
+   - 날짜 선택(2026-09-15): 상단바 ‹ 날짜 › 오늘. 지난 날짜 = 그날 종가 판정(없으면 "판정 없음"),
+     주소에 ?date=YYYY-MM-DD로 남음. 1분 갱신은 오늘을 볼 때만.
    ═══════════════════════════════════════════════════════════════ */
 :root {
   /* 크롬(어두운 틀) */
@@ -42,7 +45,15 @@ body { font-family: 'SUIT Variable', SUIT, 'Malgun Gothic', sans-serif;
 .clock { font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 12px; color: var(--chrome-muted); }
 .clock .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
               background: var(--live); margin-right: 8px; }
-.tabs { margin-left: auto; display: flex; gap: 4px; }
+.tabs { margin-left: 12px; display: flex; gap: 4px; }
+/* 날짜 선택 (상단바 우측, 탭 앞) — 이전/다음 거래일 + 달력 입력 + 오늘 */
+.datebar { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+.datebar input { background: var(--chrome-2); color: var(--chrome-ink); border: 0; border-radius: 4px;
+                 padding: 5px 8px; font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 12px;
+                 color-scheme: dark; }
+.datebar .tab:disabled { opacity: .35; cursor: default; }
+.datebar #d-prev, .datebar #d-next { font-size: 15px; padding: 2px 10px; line-height: 1; }
+.datebar[hidden] { display: none; }   /* display:flex가 hidden 속성을 덮지 않게 */
 .tab { background: none; border: 0; padding: 6px 12px; cursor: pointer; font-family: inherit;
        font-size: 12px; font-weight: 500; color: var(--chrome-muted); border-radius: 4px; }
 .tab.on { background: var(--chrome-2); color: var(--chrome-ink); font-weight: 700; }
@@ -101,31 +112,16 @@ body { font-family: 'SUIT Variable', SUIT, 'Malgun Gothic', sans-serif;
 .b-bar i.u { background: var(--up); }
 .b-nm { font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 11px; color: var(--muted); margin-top: 5px; }
 
-/* 최근 10거래일 상태 띠 */
-.strip { display: flex; gap: 2px; margin-top: 12px; }
-.strip i { flex: 1 1 0; height: 14px; border-radius: 1px; background: var(--seg); cursor: default; }
-.strip i.up { background: var(--up); } .strip i.down { background: var(--down); }
-.strip i.flat { background: var(--flat); } .strip i.hot { background: var(--hot); }
-.strip-nm { font-size: 11px; color: var(--muted); margin-top: 5px; line-height: 1.5; }
-
 .pending { font-size: 12px; color: var(--muted); }
+.empty { padding: 28px 14px; font-size: 13px; color: var(--muted); }
 
-/* 주간 — 이름표 하나 + 근거 한 줄 + 최근 10거래일 주간 띠 (2026-09-15, 초안 규칙)
+/* 주간 — 이름표 하나 + 근거 한 줄 (2026-09-15, 초안 규칙. 10거래일 띠는 실시간 쪽 검수 결과에 맞춰 두지 않음)
    색: 상승장 빨강 / 하락장 파랑 / 박스권 회색 / 변동장 먹색(방향 없음) / 긴급 = 파랑 바탕 반전 */
 .word.ink { color: var(--ink); }
 .word.emg { color: #fff; background: var(--down); padding: 1px 8px; border-radius: 3px; }
-.strip i.ink { background: var(--ink); } .strip i.emg { background: var(--down); outline: 2px solid var(--ink); outline-offset: -2px; }
 .w-why { font-size: 12px; color: var(--muted); margin-top: 6px; }
 .w-why b { color: var(--ink); font-variant-numeric: tabular-nums; }
 .w-draft { font-size: 10.5px; color: var(--muted); margin-left: 8px; font-weight: 500; letter-spacing: 0; text-transform: none; }
-
-/* 해외 시장 — Koyfin식 표 */
-.tbl { width: 100%; border-collapse: collapse; }
-.tbl td { padding: 8px 14px; font-size: 12.5px; border-top: 1px solid var(--line); }
-.tbl tr:first-child td { border-top: 0; }
-.tbl .r { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
-.tbl .st { text-align: right; font-weight: 700; font-size: 12px; }
-.world-panel { margin-top: 12px; }
 </style>
 </head>
 <body>
@@ -134,6 +130,12 @@ body { font-family: 'SUIT Variable', SUIT, 'Malgun Gothic', sans-serif;
 <header class="top">
   <span class="logo">ODIN</span>
   <span class="clock" id="clock"></span>
+  <div class="datebar" id="datebar">
+    <button class="tab" id="d-prev" title="이전 거래일">‹</button>
+    <input type="date" id="d-input" aria-label="날짜 선택">
+    <button class="tab" id="d-next" title="다음 거래일">›</button>
+    <button class="tab" id="d-today">오늘</button>
+  </div>
   <div class="tabs" id="tabs"></div>
 </header>
 
@@ -157,9 +159,6 @@ body { font-family: 'SUIT Variable', SUIT, 'Malgun Gothic', sans-serif;
 
   <main class="main">
     <div class="grid" id="stacks"></div>
-    <div class="panel world-panel">
-      <table class="tbl" id="tiles"></table>
-    </div>
   </main>
 </div>
 
@@ -206,12 +205,6 @@ const MOCK_US = [
   { name: "S&P500", px: "6,712.40", chg: +0.83, state: "up",   b: null, closes: null },
   { name: "NASDAQ", px: "24,891.55", chg: +1.94, state: "fire", b: null, closes: null },
 ];
-const MOCK_TILES = [
-  { name: "닛케이225", chg: +0.41, state: "up" },
-  { name: "그로스250", chg: -0.88, state: "down" },
-  { name: "상해종합",  chg: +0.12, state: "flat" },
-  { name: "ChiNext",  chg: -1.73, state: "down" },
-];
 
 /* ═══════════ 그리기 도우미 ═══════════ */
 function chgHtml(chg, cls) {
@@ -242,38 +235,22 @@ function breadthHtml(b) {
     <div class="b-nm">하락 ${b.down} · 보합 ${flat} · 상승 ${b.up} / ${b.total}</div>`;
 }
 
-function stripHtml(hist) {
-  if (!hist || !hist.length) return "";
-  const cells = hist.map(h => {
-    const S = STATE[h.state] || STATE.flat;
-    return `<i class="${S.fam}" title="${h.d} ${S.nm}"></i>`;
-  }).join("");
-  return `<div class="strip">${cells}</div>
-    <div class="strip-nm">${hist.map(h => (STATE[h.state]||STATE.flat).nm).join(" · ")}</div>`;
-}
-
 function signed(v, digits = 2) {
   return v == null ? "—" : `${v > 0 ? "+" : ""}${Number(v).toFixed(digits)}%`;
 }
 
-/* 주간 칸: 이름표 + 왜 그렇게 판정했나(근거 한 줄) + 최근 10거래일 주간 띠 */
+/* 주간 칸: 이름표 + 왜 그렇게 판정했나(근거 한 줄) */
 function weekHtml(w) {
   if (w === undefined) return `<div class="pending">설계 중</div>`;               // 목데이터(미국 탭 등)
   if (!w) return `<div class="pending">주간 판정 없음 — 아직 DB에 기록 전</div>`;
   const W = WEEK[w.state] || WEEK.box;
   const m = w.metrics || {};
   const why = w.state === "emergency"
-    ? `오늘 장중 최저 <b>${signed(m.low_pct_today, 1)}</b> — 서킷브레이커급(−8% 이하)`
+    ? `그날 장중 최저 <b>${signed(m.low_pct_today, 1)}</b> — 서킷브레이커급(−8% 이하)`
     : `최근 5거래일 <b>${signed(m.chg5, 1)}</b> · 5일 평균 진폭 <b>${m.rng5 == null ? "—" : Number(m.rng5).toFixed(2) + "%"}</b>`
       + (m.rng_threshold == null ? " (변동장 기준 없음)" : ` / 변동장 기준 ${Number(m.rng_threshold).toFixed(2)}%`);
-  const cells = (w.hist || []).map(h => {
-    const H = WEEK[h.state] || WEEK.box;
-    return `<i class="${H.fam}" title="${h.d} ${H.nm}"></i>`;
-  }).join("");
   return `<span class="word ${W.fam}">${W.nm}</span><span class="sub">${w.asof} 종가 기준</span>
-    <div class="w-why">${why}</div>
-    ${cells ? `<div class="strip">${cells}</div>
-    <div class="strip-nm">${(w.hist || []).map(h => (WEEK[h.state] || WEEK.box).nm).join(" · ")}</div>` : ""}`;
+    <div class="w-why">${why}</div>`;
 }
 
 /* 판정 재료 구분(실시간·끊김·장 마감·종가)은 상단바 한 곳에만 표시 — 카드 머리줄 꼬리표는 뺌(2026-09-14 검수) */
@@ -291,7 +268,6 @@ function marketCard(mk) {
       <span class="p-px">${mk.px}</span><span>${mk.chg == null ? "" : chgHtml(mk.chg, "p-chg")}</span>
     </div>
     <div class="p-body">
-      <div class="sec">오늘의 상태</div>
       <div class="state-row">
         <div>
           <span class="word ${S.fam}">${S.nm}</span><span class="sub">${mk.chg == null ? "" : chgHtml(mk.chg, "")}</span>
@@ -300,17 +276,10 @@ function marketCard(mk) {
         ${sparkHtml(mk.closes, mk.sparkLabel)}
       </div>
       ${breadthHtml(mk.b)}
-      ${stripHtml(mk.hist)}
       <div class="sec">주간<span class="w-draft">초안 규칙</span></div>
       ${weekHtml(mk.week)}
     </div>
   </div>`;
-}
-
-function tileRow(t) {
-  const S = STATE[t.state] || STATE.flat;
-  return `<tr><td>${t.name}</td><td class="r">${chgHtml(t.chg, "")}</td>
-    <td class="st word ${S.fam}" style="font-size:12px">${S.nm}</td></tr>`;
 }
 
 /* ═══════════ 실데이터 조회 → 카드 재료로 변환 ═══════════
@@ -343,79 +312,98 @@ function sinceOf(liveRows) {
   return { from: kst(from).hm, minutes: Math.round((new Date(last.as_of) - from) / 60000) + 1 };
 }
 
-async function loadKR(now = new Date()) {
+/* 거래일 목록(날짜 이동 버튼용) — 지수 일봉이 있는 날 */
+async function loadDays() {
   const sb = window.supabase.createClient(SB_URL, SB_KEY);
-  const today = kst(now).date;
-  const dayStart = `${today}T00:00:00+09:00`;
+  const r = await sb.from("raw_index_ohlc").select("date").eq("market", "KR-KOSPI")
+    .order("date", { ascending: false }).limit(1000);
+  if (r.error) throw r.error;
+  return r.data.map(x => x.date).reverse();
+}
+
+/* sel = 볼 날짜(YYYY-MM-DD). null이면 오늘(실시간 자동 판단). 지난 날짜는 그날 장 마감 뒤 시점으로 본다. */
+async function loadKR(sel = null) {
+  const sb = window.supabase.createClient(SB_URL, SB_KEY);
+  const realNow = new Date();
+  const today = kst(realNow).date;
+  const day = sel && sel < today ? sel : today;
+  const past = day !== today;
+  const now = past ? new Date(`${day}T23:59:00+09:00`) : realNow;
+  const dayStart = `${day}T00:00:00+09:00`, dayEnd = `${day}T23:59:59+09:00`;
   const [st, ix, live, snap, wk] = await Promise.all([
     sb.from("state_market_temp")
       .select("as_of,market,state_code,state_sectors,breadth_up,breadth_down,breadth_total,metrics")
-      .eq("model_id", MODEL).eq("scope", "rt").eq("basis", "eod")
-      .order("as_of", { ascending: false }).limit(40),
+      .eq("model_id", MODEL).eq("scope", "rt").eq("basis", "eod").lte("as_of", dayEnd)
+      .order("as_of", { ascending: false }).limit(4),
     sb.from("raw_index_ohlc")
       .select("date,market,close")
-      .in("market", MARKETS)
+      .in("market", MARKETS).lte("date", day)
       .order("date", { ascending: false }).limit(70),
     sb.from("state_market_temp")
       .select("as_of,market,state_code,state_sectors,breadth_up,breadth_down,breadth_total,metrics")
-      .eq("model_id", MODEL).eq("scope", "rt").eq("basis", "live").gte("as_of", dayStart)
+      .eq("model_id", MODEL).eq("scope", "rt").eq("basis", "live").gte("as_of", dayStart).lte("as_of", dayEnd)
       .order("as_of", { ascending: true }).limit(1000),
     sb.from("raw_market_snapshot")
       .select("ts,market,price,change_pct,source")
-      .eq("kind", "index").in("market", MARKETS).gte("ts", dayStart)
+      .eq("kind", "index").in("market", MARKETS).gte("ts", dayStart).lte("ts", dayEnd)
       .order("ts", { ascending: false }).limit(20),
-    /* 주간 판정(scope=w) — 시장별 최신 줄 + 최근 10거래일 띠. 두 시장이라 넉넉히 40줄 */
+    /* 주간 판정(scope=w) — 보는 날짜까지의 시장별 최신 줄(두 시장이라 4줄이면 충분) */
     sb.from("state_market_temp")
       .select("as_of,market,state_code,metrics")
-      .eq("model_id", W_MODEL).eq("scope", "w")
-      .order("as_of", { ascending: false }).limit(40),
+      .eq("model_id", W_MODEL).eq("scope", "w").lte("as_of", dayEnd)
+      .order("as_of", { ascending: false }).limit(4),
   ]);
   for (const r of [st, ix, live, snap]) if (r.error) throw r.error;
   if (wk.error) console.warn("주간 판정 조회 실패:", wk.error.message);   // 주간이 없어도 실시간 카드는 그린다
 
   const nowK = kst(now);
-  const inSession = nowK.hm >= "09:00" && nowK.hm <= "15:35";
+  const inSession = !past && nowK.hm >= "09:00" && nowK.hm <= "15:35";
   const out = [];
   for (const m of MARKETS) {
     const eodRows = st.data.filter(r => r.market === m);
-    const idx  = ix.data.filter(r => r.market === m);
+    const idxAll = ix.data.filter(r => r.market === m);
     const liveRows = live.data.filter(r => r.market === m);
     const lastLive = liveRows[liveRows.length - 1];
     const ageMin = lastLive ? (now - new Date(lastLive.as_of)) / 60000 : Infinity;
-    const eodToday = eodRows.length && kst(new Date(eodRows[0].as_of)).date === today;
+    const eodToday = eodRows.length && kst(new Date(eodRows[0].as_of)).date === day;
 
     let mode = "eod";
     if (lastLive && inSession) mode = ageMin <= LIVE_FRESH_MIN ? "live" : "stale";
     else if (lastLive && nowK.hm > "15:35" && !eodToday) mode = "closing";
 
     const row = mode === "eod" ? eodRows[0] : lastLive;
-    if (!row || idx.length < 2) continue;
-    const closes = idx.slice(0, 30).map(r => Number(r.close)).reverse();
+    if (!row) continue;
+    const rowDate = kst(new Date(row.as_of)).date;
+    if (past && rowDate !== day) continue;            // 지난 날짜인데 그날 판정이 없음(휴장일 등)
     const card = {
       name: m.replace("KR-", ""), mode,
       state: row.state_code,
       sectors: row.state_sectors || null,
       b: row.breadth_total ? { up: row.breadth_up, down: row.breadth_down, total: row.breadth_total } : null,
-      hist: eodRows.slice(0, 10).reverse().map(r => ({ d: String(r.as_of).slice(5, 10), state: r.state_code })),
-      asof: kst(new Date(row.as_of)).date, asofHm: kst(new Date(row.as_of)).hm,
+      asof: rowDate, asofHm: kst(new Date(row.as_of)).hm,
     };
-    const wRows = wk.error ? [] : wk.data.filter(r => r.market === m);
-    card.week = wRows.length ? {
-      state: wRows[0].state_code, metrics: wRows[0].metrics, asof: kst(new Date(wRows[0].as_of)).date,
-      hist: wRows.slice(0, 10).reverse().map(r => ({ d: kst(new Date(r.as_of)).date.slice(5), state: r.state_code })),
-    } : null;
+    /* 지난 날짜를 볼 땐 그날 주간 줄만(없으면 "판정 없음"), 오늘은 가장 최근 줄 */
+    const wRow = (wk.error ? [] : wk.data).find(r => r.market === m);
+    const wDate = wRow && kst(new Date(wRow.as_of)).date;
+    card.week = wRow && (!past || wDate === day)
+      ? { state: wRow.state_code, metrics: wRow.metrics, asof: wDate } : null;
     if (mode === "eod") {
+      /* 판정 날짜의 일봉에 맞춘다(밤 복사가 판정보다 먼저 들어온 날에도 숫자가 어긋나지 않게) */
+      const idx = idxAll.slice(Math.max(idxAll.findIndex(r => r.date <= rowDate), 0));
+      if (idx.length < 2) continue;
       card.px = fmtPx(idx[0].close);
       card.chg = (Number(idx[0].close) / Number(idx[1].close) - 1) * 100;
-      card.closes = closes;
+      card.closes = idx.slice(0, 30).map(r => Number(r.close)).reverse();
     } else {
+      const idx = idxAll;
+      const closes = idx.slice(0, 30).map(r => Number(r.close)).reverse();
       /* 장중 지수값: 오늘 1분 시세(3.0 직접 수집 우선) → 없으면 판정 근거의 등락률만 */
       const ixRow = snap.data.filter(r => r.market === m)
         .sort((a, b) => (b.ts > a.ts) - (b.ts < a.ts) || (a.source === "kis" ? -1 : 1))[0];
       card.px = ixRow ? fmtPx(ixRow.price) : "—";
       card.chg = ixRow && ixRow.change_pct != null ? Number(ixRow.change_pct)
                : row.metrics && row.metrics.chg != null ? Number(row.metrics.chg) : null;
-      if (ixRow && idx[0].date < today) {
+      if (ixRow && (!idx.length || idx[0].date < day)) {
         card.closes = [...closes.slice(1), Number(ixRow.price)];
         card.sparkLabel = `최근 29일 종가 + ${card.asofHm}`;
       } else {
@@ -427,14 +415,19 @@ async function loadKR(now = new Date()) {
     }
     out.push(card);
   }
-  if (!out.length) throw new Error("실데이터 없음");
-  return { cards: out, inSession, today };
+  return { cards: out, inSession, today: day, past };
 }
 
 /* ═══════════ 렌더 ═══════════ */
 let KR = null, KR_ERR = false, TAB = "kr";
+let SELECTED = null;      // 보고 있는 날짜(null = 오늘)
+let DAYS = [];            // 거래일 목록(오름차순)
 
 function clockHtml(kr) {
+  if (!kr.cards.length)
+    return `<span class="dot" style="background:var(--flat)"></span>${kr.today} 판정 없음 <span class="note">— 휴장일이거나 기록 전</span>`;
+  if (kr.past && kr.cards.every(c => c.mode === "eod"))
+    return `<span class="dot" style="background:var(--flat)"></span>${kr.today} 종가 기준 <span class="note">— 지난 날짜 보기</span>`;
   const modes = kr.cards.map(c => c.mode);
   const latest = kr.cards.map(c => c.asofHm).sort().pop();
   if (modes.includes("live"))
@@ -453,9 +446,12 @@ function render(key) {
   document.getElementById("tabs").innerHTML = Object.keys(tabs).map(k =>
     `<button class="tab${k === key ? " on" : ""}" onclick="render('${k}')">${tabs[k]}</button>`).join("");
 
+  renderDatebar(key);
   if (key === "kr" && KR) {
     document.getElementById("clock").innerHTML = clockHtml(KR);
-    document.getElementById("stacks").innerHTML = KR.cards.map(marketCard).join("");
+    document.getElementById("stacks").innerHTML = KR.cards.length
+      ? KR.cards.map(marketCard).join("")
+      : `<div class="panel empty">${KR.today}에는 판정이 없습니다 — 휴장일이거나 아직 기록 전입니다.</div>`;
   } else if (key === "kr") {
     document.getElementById("clock").innerHTML =
       `<span class="dot" style="background:var(--flat)"></span>${KR_ERR ? "DB 연결 안 됨 — 목데이터 표시" : "불러오는 중"}`;
@@ -466,16 +462,60 @@ function render(key) {
       `<span class="dot" style="background:var(--flat)"></span>목데이터 <span class="note">— 미국 실제 구성은 한국 검증 후 (보류 9번)</span>`;
     document.getElementById("stacks").innerHTML = MOCK_US.map(m => marketCard(m)).join("");
   }
-  document.getElementById("tiles").innerHTML = MOCK_TILES.map(tileRow).join("");
 }
 
-const first = new URLSearchParams(location.search).get("market") === "us" ? "us" : "kr";
+/* ═══════════ 날짜 선택 ═══════════ */
+function todayKst() { return kst(new Date()).date; }
+function viewDay() { return SELECTED || todayKst(); }
+
+function renderDatebar(key) {
+  const bar = document.getElementById("datebar");
+  bar.hidden = key !== "kr";                        // 미국 탭은 목데이터라 날짜 개념 없음
+  const d = viewDay(), t = todayKst();
+  const input = document.getElementById("d-input");
+  input.value = d;
+  input.max = t;
+  if (DAYS.length) input.min = DAYS[0];
+  document.getElementById("d-prev").disabled = !DAYS.some(x => x < d);
+  document.getElementById("d-next").disabled = d >= t;
+  document.getElementById("d-today").disabled = !SELECTED;
+}
+
+function selectDay(d) {
+  const t = todayKst();
+  SELECTED = !d || d >= t ? null : d;
+  const url = new URL(location.href);
+  if (SELECTED) url.searchParams.set("date", SELECTED); else url.searchParams.delete("date");
+  history.replaceState(null, "", url);
+  KR = null;                                        // 다른 날짜 데이터가 섞여 보이지 않게 비우고 다시 읽음
+  render(TAB);
+  refresh();
+}
+
+document.getElementById("d-prev").onclick = () => {
+  const d = viewDay();
+  const prev = DAYS.filter(x => x < d).pop();
+  if (prev) selectDay(prev);
+};
+document.getElementById("d-next").onclick = () => {
+  const d = viewDay();
+  selectDay(DAYS.find(x => x > d) || null);         // 목록 끝을 넘으면 오늘로
+};
+document.getElementById("d-today").onclick = () => selectDay(null);
+document.getElementById("d-input").onchange = e => selectDay(e.target.value || null);
+
+const params = new URLSearchParams(location.search);
+const first = params.get("market") === "us" ? "us" : "kr";
+if (/^\d{4}-\d{2}-\d{2}$/.test(params.get("date") || "") && params.get("date") < todayKst()) SELECTED = params.get("date");
 render(first);
 
-/* 1분마다 다시 읽기 — 판별기가 매분 :25초에 쓰므로 :40초쯤 읽는다. 실패하면 직전 화면 유지 */
+/* 1분마다 다시 읽기(오늘을 볼 때만) — 판별기가 매분 :25초에 쓰므로 :40초쯤 읽는다. 실패하면 직전 화면 유지 */
 async function refresh() {
+  const want = SELECTED;
   try {
-    KR = await loadKR();
+    const data = await loadKR(want);
+    if (want !== SELECTED) return;                  // 읽는 사이 날짜를 바꿨으면 버림
+    KR = data;
     KR_ERR = false;
   } catch (e) {
     console.warn("실데이터 조회 실패:", e.message || e);
@@ -483,9 +523,10 @@ async function refresh() {
   }
   if (TAB === "kr") render("kr");
 }
+loadDays().then(d => { DAYS = d; render(TAB); }).catch(e => console.warn("거래일 목록 조회 실패:", e.message || e));
 refresh();
 setTimeout(function tick() {
-  refresh();
+  if (!SELECTED) refresh();
   setTimeout(tick, 60000);
 }, ((100 - new Date().getSeconds()) % 60 || 60) * 1000);
 </script>
