@@ -14,13 +14,14 @@ from pathlib import Path
 
 import webview
 
-# 띄울 화면 파일 — 이 폴더 기준 상대 경로라 어디서 실행해도 안전
-HTML = Path(__file__).parent / "app" / "market-temp.html"
+# 띄울 화면 — 앱 껍데기(index.html)가 시장 온도·마켓 화면을 틀 안에 띄우고 사이드바 이동을 처리한다.
+# 이 폴더 기준 상대 경로라 어디서 실행해도 안전
+HTML = Path(__file__).parent / "app" / "index.html"
 
 
 def main() -> None:
     webview.create_window(
-        title="Odin 3.0 — 시장 온도",
+        title="Odin 3.0",
         url=HTML.as_uri(),      # 파일 경로를 창에 그대로 로드
         width=1240,
         height=860,

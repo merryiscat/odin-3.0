@@ -67,8 +67,10 @@ body { font-family: 'SUIT Variable', SUIT, 'Malgun Gothic', sans-serif;
        font-weight: 400; text-decoration: none; cursor: default; border-left: 2px solid transparent; }
 .nav.on { color: var(--chrome-ink); font-weight: 700; background: var(--chrome-2);
           border-left-color: var(--accent); }
-/* 묶음 없이 홀로 서는 항목(마켓·계좌) — 앞 묶음과 간격만 띄운다 */
-.nav.top { margin-top: 14px; }
+/* 묶음 없이 홀로 서는 항목(마켓·계좌) — 앞 묶음과 간격만 띄운다.
+   (클래스명 top은 상단바 .top과 겹쳐 줄이 48px로 부풀었음 → solo로 변경, 2026-09-15) */
+.nav.solo { margin-top: 14px; }
+a.nav[href$=".html"] { cursor: pointer; }   /* 실제 화면이 있는 메뉴만 손가락 커서 */
 
 .main { flex: 1; min-width: 0; overflow-y: auto; padding: 16px; }
 .note { font-size: 11px; color: var(--chrome-muted); }
@@ -143,14 +145,14 @@ body { font-family: 'SUIT Variable', SUIT, 'Malgun Gothic', sans-serif;
   <!-- 사이드바 (다크 크롬) — 시장 온도만 실화면, 나머지 자리표시 -->
   <aside class="side">
     <div class="nav-group">파이프라인</div>
-    <a class="nav on" href="#">시장 온도</a>
+    <a class="nav on" href="market-temp.html">시장 온도</a>
     <a class="nav" href="#">매매리스트</a>
     <a class="nav" href="#">매매모델</a>
-    <a class="nav top" href="#">마켓</a>
+    <a class="nav solo" href="market.html">마켓</a>
     <div class="nav-group">연구소</div>
     <a class="nav" href="#">모델</a>
     <a class="nav" href="#">실험</a>
-    <a class="nav top" href="#">계좌</a>
+    <a class="nav solo" href="#">계좌</a>
     <div class="nav-group">리서치</div>
     <a class="nav" href="#">추적그래프</a>
     <a class="nav" href="#">매매일지</a>
@@ -529,6 +531,21 @@ setTimeout(function tick() {
   if (!SELECTED) refresh();
   setTimeout(tick, 60000);
 }, ((100 - new Date().getSeconds()) % 60 || 60) * 1000);
+</script>
+<script>
+/* 앱 껍데기(index.html) 안에서 열렸으면 지금 위치·제목을 알린다 — 새로고침해도 이 화면·날짜로 돌아오게 */
+(function () {
+  if (window.parent === window) return;
+  let last = "";
+  const tell = () => {
+    const screen = location.pathname.split("/").pop() + location.search;
+    if (screen === last) return;
+    last = screen;
+    window.parent.postMessage({ type: "odin-screen", screen, title: document.title }, "*");
+  };
+  tell();
+  setInterval(tell, 500);   // 탭·날짜 전환은 history.replaceState라 load 이벤트가 없어 짧게 확인
+})();
 </script>
 </body>
 </html>
