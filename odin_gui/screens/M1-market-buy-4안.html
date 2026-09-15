@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>마켓 구매 목록(M1) — 4안 — Odin 3.0</title>
+<style>
+/* ── 와이어프레임 공통 (흑백 6단계만) ─────────────────────────── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Malgun Gothic', sans-serif; background: #eee; color: #000; padding: 16px; }
+.meta { background: #fff; border: 1px solid #000; padding: 16px; margin-bottom: 24px; font-size: 13px; line-height: 1.7; }
+.meta b { display: inline-block; min-width: 72px; }
+h1 { font-size: 18px; margin-bottom: 12px; }
+
+.variant { margin-bottom: 40px; }
+.v-head { font-size: 14px; font-weight: bold; padding: 8px 12px; background: #333; color: #fff; }
+.v-concept { font-size: 12px; padding: 6px 12px; background: #ccc; border: 1px solid #999; border-top: none; }
+.frame { background: #fff; border: 1px solid #000; border-top: none; padding: 16px; }
+
+/* 공통 컴포넌트 */
+.badge { display: inline-block; font-size: 10px; border: 1px solid #666; padding: 1px 6px; color: #333; white-space: nowrap; }
+.badge--on { background: #333; color: #fff; border-color: #333; }
+.conf { font-size: 10px; color: #999; }
+.sec-label { font-size: 11px; font-weight: bold; color: #666; letter-spacing: .08em; margin: 18px 0 8px; }
+.sec-label:first-child { margin-top: 0; }
+.token { color: #666; }
+.btn { display: inline-block; border: 1px solid #000; padding: 4px 12px; font-size: 12px; background: #fff; white-space: nowrap; }
+.btn--pri { background: #000; color: #fff; }
+.img-ph { position: relative; border: 1px solid #999; background: #fff; min-height: 40px; }
+.img-ph::before, .img-ph::after { content: ""; position: absolute; left: 0; top: 50%; width: 100%; border-top: 1px solid #ccc; }
+.img-ph::before { transform: rotate(12deg); } .img-ph::after { transform: rotate(-12deg); }
+.img-ph span { position: relative; z-index: 1; font-size: 9px; color: #999; padding: 2px 4px; background: #fff; }
+.scroll { overflow-x: auto; }
+.disclaim { font-size: 10px; color: #999; margin-top: 8px; }
+
+/* 마켓 공통 머리: 구매/판매 탭 + 검색 */
+.mk-top { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.mk-tabs { display: flex; }
+.mk-tabs div { border: 1px solid #000; padding: 6px 16px; font-size: 12px; margin-right: -1px; }
+.mk-tabs div.on { background: #000; color: #fff; font-weight: bold; }
+.search { flex: 1; min-width: 160px; border: 1px solid #999; padding: 6px 10px; font-size: 12px; color: #999; }
+.types { display: flex; flex-wrap: wrap; gap: 0; margin-bottom: 10px; }
+.types div { border: 1px solid #999; padding: 5px 12px; font-size: 12px; margin: 0 -1px -1px 0; }
+.types div.on { border-color: #000; font-weight: bold; background: #eee; }
+
+/* 보편 A: 표 */
+.tbl { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 640px; }
+.tbl th, .tbl td { border-bottom: 1px solid #ccc; padding: 8px 6px; text-align: right; white-space: nowrap; }
+.tbl th { font-size: 11px; color: #666; border-bottom: 1px solid #000; }
+.tbl th:first-child, .tbl td:first-child { text-align: left; }
+.tbl td.nm b { display: block; font-size: 13px; }
+.tbl tr.base td { background: #eee; color: #666; border-top: 1px dashed #666; border-bottom: 1px dashed #666; }
+.tbl tr.below td { color: #999; }
+
+/* 보편 B: 필터 + 카드 */
+.b-wrap { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.b-filter { border: 1px solid #999; padding: 10px 12px; font-size: 12px; line-height: 2; }
+.b-filter b { display: block; font-size: 11px; color: #666; margin-top: 6px; }
+.b-filter b:first-child { margin-top: 0; }
+.chk { display: inline-block; width: 10px; height: 10px; border: 1px solid #666; margin-right: 4px; vertical-align: -1px; }
+.chk.on { background: #333; }
+.b-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.b-card { border: 1px solid #000; padding: 12px; font-size: 12px; }
+.b-card .row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.b-card .nm { font-size: 14px; font-weight: bold; }
+.b-card .img-ph { height: 56px; margin: 10px 0; }
+.b-card .kpi { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid #ccc; padding-top: 8px; margin-top: 6px; }
+.b-card .kpi div { font-size: 10px; color: #666; }
+.b-card .kpi div b { display: block; font-size: 13px; color: #000; }
+
+/* 실험 A: 내 조합 슬롯 */
+.slots { display: grid; grid-template-columns: 1fr; gap: 0; border: 1px solid #000; }
+.slot { padding: 10px 12px; border-bottom: 1px solid #999; font-size: 12px; }
+.slot:last-child { border-bottom: none; }
+.slot .k { font-size: 10px; color: #666; }
+.slot .v { font-size: 13px; font-weight: bold; margin-top: 2px; }
+.slot.empty { background: #eee; }
+.slot.empty .v { color: #666; font-weight: normal; }
+.slot.sel { border: 2px solid #000; }
+.combo-now { font-size: 11px; color: #333; padding: 8px 12px; border: 1px solid #999; border-top: none; }
+.fit { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 560px; }
+.fit th, .fit td { border-bottom: 1px solid #ccc; padding: 8px 6px; text-align: right; white-space: nowrap; }
+.fit th { font-size: 11px; color: #666; border-bottom: 1px solid #000; }
+.fit th:first-child, .fit td:first-child { text-align: left; }
+.delta { font-weight: bold; }
+
+/* 실험 B: 시장 상황별 성적 지도 */
+.map { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 620px; }
+.map th, .map td { border: 1px solid #999; padding: 7px 5px; text-align: center; }
+.map th { background: #fff; font-size: 10px; color: #666; }
+.map td.nm { text-align: left; font-weight: bold; white-space: nowrap; background: #fff; }
+.s0 { background: #fff; } .s1 { background: #eee; } .s2 { background: #ccc; } .s3 { background: #666; color: #fff; }
+.map tr.base td { border-top: 2px dashed #333; }
+.legend { font-size: 10px; color: #666; margin-top: 8px; display: flex; flex-wrap: wrap; gap: 12px; }
+.legend i { display: inline-block; width: 12px; height: 10px; border: 1px solid #666; vertical-align: -1px; margin-right: 3px; }
+
+/* 사이드 노트 */
+.notes { background: #fff; border: 1px dashed #666; padding: 16px; font-size: 12px; line-height: 1.7; }
+.notes h2 { font-size: 13px; margin: 10px 0 4px; }
+.notes h2:first-child { margin-top: 0; }
+
+@media (min-width: 768px) {
+  .b-grid { grid-template-columns: 1fr 1fr; }
+  .slots { grid-template-columns: repeat(4, 1fr); }
+  .slot { border-bottom: none; border-right: 1px solid #999; }
+  .slot:last-child { border-right: none; }
+}
+@media (min-width: 1024px) {
+  body { padding: 24px 48px; }
+  .b-wrap { grid-template-columns: 200px 1fr; }
+  .b-grid { grid-template-columns: repeat(3, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<div class="meta">
+  <h1>마켓 — 구매 목록 (M1) — 화면 4안</h1>
+  <div><b>목적</b> 내 매매 조합에 끼울 모델(부품)을 찾아 성적으로 비교하고 고른다. 부품 4종: 시장 상태 판단 · 종목 고르기 · 사고팔기 규칙 · 돈 배분/위험 관리.</div>
+  <div><b>진입점</b> 사이드바 "마켓" → 기본 탭 "구매".</div>
+  <div><b>다음</b> 모델 클릭 → 모델 상세(구매 결정, 화면 미정) · 탭 "판매" → M2 판매(업로드).</div>
+  <div><b>가정</b> 로그인 상태. 목록의 모든 모델은 검증(규격·안전 자동 검사 + 과거 데이터 백테스트) 통과분만 노출. 가격 방식 미정(보류 #15) → {가격} 토큰.</div>
+  <div><b>작성일</b> 2026-09-15 · 개념: docs/market-concept_v1.md (로컬)</div>
+</div>
+
+<!-- ══════════════ 보편 A ══════════════ -->
+<div class="variant">
+  <div class="v-head">보편 A — 종류 탭 + 성적 표</div>
+  <div class="v-concept">컨셉: 부품 종류를 탭으로 고르고, 같은 종류끼리 한 표에서 숫자로 비교. 기준선 모델이 표 안에 한 줄로 박혀 있어 "기준선보다 못한 모델"은 흐리게 — 이미 정한 측정 원칙(기준선을 못 이기면 운)을 목록 자체에 새김.</div>
+  <div class="frame">
+    <div class="mk-top">
+      <div class="mk-tabs"><div class="on">구매</div><div>판매</div></div>
+      <div class="search">모델 이름 · 판매자 검색</div>
+    </div>
+    <div class="types"><div>시장 상태 판단</div><div>종목 고르기</div><div class="on">사고팔기 규칙</div><div>돈 배분/위험 관리</div></div>
+    <div class="scroll">
+      <table class="tbl">
+        <tr><th>모델</th><th>검증</th><th>수익률 {기간}</th><th>최대 낙폭</th><th>기준선 대비</th><th>거래 수</th><th>가격</th><th></th></tr>
+        <tr><td class="nm"><b>{모델명 A}</b><span class="conf">{판매자} · v{버전}</span></td><td><span class="badge badge--on">통과</span></td><td>{+18.2%}</td><td>{-9.1%}</td><td>{+11.4%p}</td><td>{312}</td><td>{가격}</td><td><span class="btn">보기</span></td></tr>
+        <tr><td class="nm"><b>{모델명 B}</b><span class="conf">{판매자} · v{버전}</span></td><td><span class="badge badge--on">통과</span></td><td>{+12.7%}</td><td>{-6.3%}</td><td>{+5.9%p}</td><td>{128}</td><td>{가격}</td><td><span class="btn">보기</span></td></tr>
+        <tr><td class="nm"><b>오딘 기본 매매</b><span class="conf">오딘 · 기본 모델</span></td><td><span class="badge badge--on">통과</span></td><td>{+9.0%}</td><td>{-7.8%}</td><td>{+2.2%p}</td><td>{205}</td><td>무료</td><td><span class="btn">보기</span></td></tr>
+        <tr class="base"><td class="nm"><b>기준선: 무작위</b><span class="conf">비교용 · 구매 불가</span></td><td>—</td><td>{+6.8%}</td><td>{-12.0%}</td><td>0</td><td>{290}</td><td>—</td><td></td></tr>
+        <tr class="below"><td class="nm"><b>{모델명 C}</b><span class="conf">{판매자} · v{버전}</span></td><td><span class="badge badge--on">통과</span></td><td>{+4.1%}</td><td>{-15.2%}</td><td>{-2.7%p}</td><td>{540}</td><td>{가격}</td><td><span class="btn">보기</span></td></tr>
+      </table>
+    </div>
+    <div class="disclaim">정렬: 기준선 대비 · 성적은 오딘 공통 데이터 백테스트 {기간} · 과거 성적이며 미래 수익 아님</div>
+  </div>
+</div>
+
+<!-- ══════════════ 보편 B ══════════════ -->
+<div class="variant">
+  <div class="v-head">보편 B — 필터 + 카드 진열</div>
+  <div class="v-concept">컨셉: 앱 장터처럼 카드로 진열하고 왼쪽 필터로 좁힌다. 숫자 표보다 "어떤 모델인지"(한 줄 설명·자산 곡선 모양)를 먼저 보여줘 둘러보기에 강함. 종류는 탭이 아니라 필터 하나.</div>
+  <div class="frame">
+    <div class="mk-top">
+      <div class="mk-tabs"><div class="on">구매</div><div>판매</div></div>
+      <div class="search">모델 이름 · 판매자 검색</div>
+    </div>
+    <div class="b-wrap">
+      <div class="b-filter">
+        <b>종류</b>
+        <span class="chk"></span>시장 상태 판단<br>
+        <span class="chk on"></span>종목 고르기<br>
+        <span class="chk on"></span>사고팔기 규칙<br>
+        <span class="chk"></span>돈 배분/위험 관리
+        <b>성적</b>
+        <span class="chk on"></span>기준선 이상만<br>
+        <span class="chk"></span>최대 낙폭 {-10%} 이내
+        <b>가격</b>
+        <span class="chk"></span>무료<br>
+        <span class="chk"></span>유료
+        <b>정렬</b>
+        <span class="token">기준선 대비 ▾</span>
+      </div>
+      <div class="b-grid">
+        <div class="b-card">
+          <div class="row"><span class="badge">사고팔기 규칙</span><span class="badge badge--on">검증 통과</span></div>
+          <div class="nm" style="margin-top:8px">{모델명 A}</div>
+          <div class="conf">{판매자} · v{버전} · {한 줄 설명}</div>
+          <div class="img-ph"><span>자산 곡선 {기간}</span></div>
+          <div class="kpi"><div><b>{+18.2%}</b>수익률</div><div><b>{-9.1%}</b>최대 낙폭</div><div><b>{+11.4%p}</b>기준선 대비</div></div>
+          <div class="row" style="margin-top:10px"><span>{가격}</span><span class="btn">보기</span></div>
+        </div>
+        <div class="b-card">
+          <div class="row"><span class="badge">종목 고르기</span><span class="badge badge--on">검증 통과</span></div>
+          <div class="nm" style="margin-top:8px">{모델명 D}</div>
+          <div class="conf">{판매자} · v{버전} · {한 줄 설명}</div>
+          <div class="img-ph"><span>자산 곡선 {기간}</span></div>
+          <div class="kpi"><div><b>{+7.5%p}</b>초과 수익</div><div><b>{21}</b>평균 종목 수</div><div><b>{+3.1%p}</b>기준선 대비</div></div>
+          <div class="row" style="margin-top:10px"><span>{가격}</span><span class="btn">보기</span></div>
+        </div>
+        <div class="b-card">
+          <div class="row"><span class="badge">사고팔기 규칙</span><span class="badge badge--on">검증 통과</span></div>
+          <div class="nm" style="margin-top:8px">오딘 기본 매매</div>
+          <div class="conf">오딘 · 기본 모델 · 시장 온도 연동 기본 규칙</div>
+          <div class="img-ph"><span>자산 곡선 {기간}</span></div>
+          <div class="kpi"><div><b>{+9.0%}</b>수익률</div><div><b>{-7.8%}</b>최대 낙폭</div><div><b>{+2.2%p}</b>기준선 대비</div></div>
+          <div class="row" style="margin-top:10px"><span>무료</span><span class="btn">보기</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="disclaim">과거 성적이며 미래 수익 아님</div>
+  </div>
+</div>
+
+<!-- ══════════════ 실험 A ══════════════ -->
+<div class="variant">
+  <div class="v-head">실험 A — 내 조합 빈칸 채우기</div>
+  <div class="v-concept">컨셉: 장터를 둘러보는 게 아니라 "내 조합"부터 보여준다. 4칸 중 한 칸을 누르면 그 칸에 끼울 수 있는 모델만 뜨고, 각 모델을 끼웠을 때 <b>내 조합 전체 성적이 얼마나 바뀌는지</b>로 비교 — 부품 단품 성적보다 조합 효과가 기준.</div>
+  <div class="frame">
+    <div class="mk-top">
+      <div class="mk-tabs"><div class="on">구매</div><div>판매</div></div>
+    </div>
+    <div class="sec-label">내 조합 {조합 이름}</div>
+    <div class="slots">
+      <div class="slot"><div class="k">시장 상태 판단</div><div class="v">rule-temp-rt-v1</div><div class="conf">오딘 기본</div></div>
+      <div class="slot empty sel"><div class="k">종목 고르기</div><div class="v">비어 있음</div><div class="conf">선택 중</div></div>
+      <div class="slot"><div class="k">사고팔기 규칙</div><div class="v">오딘 기본 매매</div><div class="conf">오딘 기본</div></div>
+      <div class="slot"><div class="k">돈 배분/위험 관리</div><div class="v">{내 모델 E}</div><div class="conf">내가 올림</div></div>
+    </div>
+    <div class="combo-now">지금 조합 백테스트 {기간}: 수익률 {+6.1%} · 최대 낙폭 {-11.3%} — 종목 고르기 칸은 전 종목 무작위로 대신 계산</div>
+    <div class="sec-label">종목 고르기 칸에 끼울 수 있는 모델</div>
+    <div class="scroll">
+      <table class="fit">
+        <tr><th>모델</th><th>끼우면 수익률</th><th>끼우면 최대 낙폭</th><th>조합 변화</th><th>가격</th><th></th></tr>
+        <tr><td><b>{모델명 D}</b> <span class="conf">{판매자}</span></td><td>{+13.9%}</td><td>{-9.0%}</td><td class="delta">{+7.8%p}</td><td>{가격}</td><td><span class="btn">보기</span></td></tr>
+        <tr><td><b>{모델명 F}</b> <span class="conf">{판매자}</span></td><td>{+10.2%}</td><td>{-12.4%}</td><td class="delta">{+4.1%p}</td><td>{가격}</td><td><span class="btn">보기</span></td></tr>
+        <tr><td><b>{모델명 G}</b> <span class="conf">{판매자}</span></td><td>{+5.0%}</td><td>{-10.1%}</td><td class="delta">{-1.1%p}</td><td>{가격}</td><td><span class="btn">보기</span></td></tr>
+      </table>
+    </div>
+    <div class="disclaim">조합 변화 = 이 모델을 끼운 조합 성적 − 지금 조합 성적 · 과거 성적이며 미래 수익 아님</div>
+  </div>
+</div>
+
+<!-- ══════════════ 실험 B ══════════════ -->
+<div class="variant">
+  <div class="v-head">실험 B — 시장 상황별 성적 지도</div>
+  <div class="v-concept">컨셉: 평균 성적 한 숫자 대신 <b>오딘 시장 온도 상태별</b>로 쪼갠 성적을 칸 음영으로. "급락장에 강한 모델", "테마장에만 버는 모델"이 한눈에 — 오딘만 가진 상태 판정 기록을 장터의 비교 축으로 쓰는 안.</div>
+  <div class="frame">
+    <div class="mk-top">
+      <div class="mk-tabs"><div class="on">구매</div><div>판매</div></div>
+      <div class="search">모델 이름 · 판매자 검색</div>
+    </div>
+    <div class="types"><div>시장 상태 판단</div><div>종목 고르기</div><div class="on">사고팔기 규칙</div><div>돈 배분/위험 관리</div></div>
+    <div class="scroll">
+      <table class="map">
+        <tr><th style="text-align:left">모델</th><th>급락</th><th>급등</th><th>테마주상승</th><th>투매</th><th>불장</th><th>상승</th><th>하락</th><th>횡보</th><th>가격</th></tr>
+        <tr><td class="nm">{모델명 A}</td><td class="s3">{+2.1}</td><td class="s1">{+0.4}</td><td class="s2">{+1.2}</td><td class="s2">{+0.9}</td><td class="s1">{+0.3}</td><td class="s1">{+0.2}</td><td class="s2">{+0.6}</td><td class="s0">{-0.1}</td><td>{가격}</td></tr>
+        <tr><td class="nm">{모델명 B}</td><td class="s0">{-1.8}</td><td class="s3">{+2.6}</td><td class="s1">{+0.2}</td><td class="s0">{-0.9}</td><td class="s3">{+1.9}</td><td class="s2">{+0.7}</td><td class="s0">{-0.4}</td><td class="s1">{+0.1}</td><td>{가격}</td></tr>
+        <tr><td class="nm">오딘 기본 매매</td><td class="s1">{+0.2}</td><td class="s1">{+0.5}</td><td class="s1">{+0.3}</td><td class="s1">{+0.1}</td><td class="s2">{+0.8}</td><td class="s1">{+0.3}</td><td class="s1">{+0.1}</td><td class="s1">{0.0}</td><td>무료</td></tr>
+        <tr class="base"><td class="nm">기준선: 무작위</td><td class="s0">{-0.5}</td><td class="s1">{+0.3}</td><td class="s1">{+0.1}</td><td class="s0">{-0.3}</td><td class="s1">{+0.4}</td><td class="s1">{+0.2}</td><td class="s0">{-0.2}</td><td class="s1">{0.0}</td><td>—</td></tr>
+      </table>
+    </div>
+    <div class="legend">
+      <span>칸 = 그 상태였던 날의 하루 평균 수익(%)</span>
+      <span><i class="s0"></i>기준선 미만</span><span><i class="s1"></i>비슷</span><span><i class="s2"></i>우세</span><span><i class="s3"></i>크게 우세</span>
+    </div>
+    <div class="disclaim">상태 = 오딘 시장 온도 종가 판정(rule-temp-rt-v1) · 과거 성적이며 미래 수익 아님</div>
+  </div>
+</div>
+
+<!-- ══════════════ 사이드 노트 ══════════════ -->
+<div class="notes">
+  <h2>의도</h2>
+  4안 공통: 목록에는 검증 통과 모델만 올라온다(검증 배지는 상태 표시지 추천이 아님). 기준선 모델을 비교 줄로 항상 함께 보여 "운으로 번 모델"을 걸러낼 눈을 준다.
+  성적 옆에 "과거 성적이며 미래 수익 아님"을 고정 — 유료 판매 화면이라 투자 권유로 읽히는 표현(추천·보장)은 쓰지 않는다(보류 #5 법적 검토 전 최소 안전선).
+  보편 A는 같은 종류끼리 숫자 비교, 보편 B는 둘러보기, 실험 A는 내 조합에 끼웠을 때의 효과, 실험 B는 시장 상황별 강약.
+  <h2>대안</h2>
+  판매자 순위(누가 잘 만드나)를 앞세우는 안 — 사람보다 모델 성적이 기준이라 보류. 인기순(구매 수) 정렬 — 성적과 무관한 쏠림을 부추겨 기본 정렬에서 제외.
+  실험 A·B를 보편 A의 보조 보기(토글)로 합치는 혼합안.
+  <h2>미정</h2>
+  종류별 성적 지표: 사고팔기=수익률·낙폭, 종목 고르기=초과 수익, 시장 상태 판단=기준선 대비 적중, 돈 배분=낙폭·변동성 — 확정 필요.
+  백테스트 기간·비용(수수료·세금·슬리피지) 가정. 가격 표기(과금 방식 보류 #15). 화면 용어 "모델"과 개념 문서 "모듈(부품)" 통일.
+  모델 상세 화면(구매 결정) 설계. 실행 위치(보류 #14)에 따라 "구매 후 어디서 도는지" 안내 필요 여부.
+</div>
+
+</body>
+</html>

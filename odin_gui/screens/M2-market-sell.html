@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>마켓 판매 관리 + 새 모델 올리기(M2) — Odin 3.0</title>
+<style>
+/* ── 와이어프레임 공통 (흑백 6단계만) ─────────────────────────── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Malgun Gothic', sans-serif; background: #eee; color: #000; padding: 16px; }
+.meta { background: #fff; border: 1px solid #000; padding: 16px; margin-bottom: 24px; font-size: 13px; line-height: 1.7; }
+.meta b { display: inline-block; min-width: 72px; }
+h1 { font-size: 18px; margin-bottom: 12px; }
+.state-head { font-size: 13px; font-weight: bold; padding: 8px 12px; background: #333; color: #fff; margin-top: 28px; }
+.state-note { font-size: 12px; padding: 6px 12px; background: #ccc; border: 1px solid #999; border-top: none; }
+.frame { background: #fff; border: 1px solid #000; border-top: none; padding: 16px; }
+
+.badge { display: inline-block; font-size: 10px; border: 1px solid #666; padding: 1px 6px; color: #333; white-space: nowrap; }
+.badge--on { background: #333; color: #fff; border-color: #333; }
+.badge--dash { border-style: dashed; }
+.conf { font-size: 10px; color: #999; }
+.sec-label { font-size: 11px; font-weight: bold; color: #666; letter-spacing: .08em; margin: 14px 0 8px; }
+.sec-label:first-child { margin-top: 0; }
+.btn { display: inline-block; border: 1px solid #000; padding: 4px 12px; font-size: 12px; background: #fff; white-space: nowrap; }
+.btn--pri { background: #000; color: #fff; }
+.btn--off { border-color: #ccc; color: #999; }
+.lbl { font-size: 11px; color: #666; margin-top: 10px; }
+.field { border: 1px solid #999; padding: 6px 10px; font-size: 12px; color: #666; margin-top: 4px; }
+.mono { font-family: Consolas, monospace; font-size: 11px; }
+.scroll { overflow-x: auto; }
+.chk { display: inline-block; width: 10px; height: 10px; border: 1px solid #666; margin-right: 4px; vertical-align: -1px; }
+.chk.on { background: #333; }
+.img-ph { position: relative; border: 1px solid #999; background: #fff; min-height: 40px; }
+.img-ph::before, .img-ph::after { content: ""; position: absolute; left: 0; top: 50%; width: 100%; border-top: 1px solid #ccc; }
+.img-ph::before { transform: rotate(12deg); } .img-ph::after { transform: rotate(-12deg); }
+.img-ph span { position: relative; z-index: 1; font-size: 9px; color: #999; padding: 2px 4px; background: #fff; }
+
+.mk-top { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.mk-tabs { display: flex; }
+.mk-tabs div { border: 1px solid #000; padding: 6px 16px; font-size: 12px; margin-right: -1px; }
+.mk-tabs div.on { background: #000; color: #fff; font-weight: bold; }
+.mk-top .btn { margin-left: auto; }
+
+.kpis { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid #000; margin-bottom: 12px; }
+.kpis div { padding: 10px; font-size: 10px; color: #666; border-right: 1px solid #999; border-bottom: 1px solid #999; }
+.kpis div b { display: block; font-size: 16px; color: #000; }
+
+/* 관리판: 표 + 오른쪽 패널. 올리기 중엔 표가 좁은 목록으로 줄고 오른쪽이 넓어진다 */
+.grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.grid > * { min-width: 0; }   /* 표 최소 폭이 칸을 밀어내 화면 밖으로 넘치지 않게 */
+.stat-filter { display: flex; flex-wrap: wrap; margin-bottom: 8px; }
+.stat-filter div { border: 1px solid #999; padding: 4px 10px; font-size: 11px; margin: 0 -1px -1px 0; }
+.stat-filter div.on { border-color: #000; font-weight: bold; background: #eee; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 620px; }
+.tbl th, .tbl td { border-bottom: 1px solid #ccc; padding: 8px 6px; text-align: right; white-space: nowrap; }
+.tbl th { font-size: 11px; color: #666; border-bottom: 1px solid #000; }
+.tbl th:first-child, .tbl td:first-child, .tbl th:nth-child(2), .tbl td:nth-child(2) { text-align: left; }
+.tbl tr.sel td { background: #eee; }
+.mini-list div { border-bottom: 1px solid #ccc; padding: 7px 2px; font-size: 12px; display: flex; justify-content: space-between; gap: 6px; }
+.mini-list div.new { border: 1px dashed #000; padding: 7px 6px; font-weight: bold; }
+.box { border: 1px solid #999; padding: 12px; font-size: 12px; }
+.box--up { border: 2px solid #000; }
+.check { width: 100%; border-collapse: collapse; font-size: 12px; }
+.check td { border-bottom: 1px solid #ccc; padding: 7px 4px; }
+.check td:last-child { text-align: right; white-space: nowrap; }
+.foot { display: flex; justify-content: space-between; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+
+/* 올리기 단계 표시 */
+.up-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.up-head b { font-size: 14px; }
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid #000; margin-bottom: 14px; }
+.steps div { padding: 7px 4px; font-size: 11px; text-align: center; border-right: 1px solid #999; }
+.steps div:last-child { border-right: none; }
+.steps div.done { color: #999; }
+.steps div.on { background: #000; color: #fff; font-weight: bold; }
+
+/* ① 가져오기: 두 통로 */
+.ways { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.way { border: 1px solid #999; padding: 12px; font-size: 12px; }
+.way.on { border: 2px solid #000; }
+.way-title { font-size: 13px; font-weight: bold; margin-bottom: 6px; }
+.queue div { border-bottom: 1px solid #ccc; padding: 7px 0; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.drop { border: 1px dashed #666; padding: 18px 10px; text-align: center; color: #666; margin-top: 6px; }
+
+/* ② 정보 + 미리보기 */
+.two { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.two > * { min-width: 0; }
+.pv { border: 1px dashed #666; padding: 12px; font-size: 12px; }
+.pv .nm { font-size: 14px; font-weight: bold; margin-top: 8px; }
+.pv .img-ph { height: 56px; margin: 10px 0; }
+.pv .kpi { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid #ccc; padding-top: 8px; }
+.pv .kpi div { font-size: 10px; color: #666; }
+.pv .kpi div b { display: block; font-size: 13px; color: #000; }
+.fill { background: #eee; }
+.bar { height: 8px; border: 1px solid #666; margin-top: 6px; }
+.bar i { display: block; height: 100%; width: 62%; background: #666; }
+
+.notes { background: #fff; border: 1px dashed #666; padding: 16px; font-size: 12px; line-height: 1.7; margin-top: 28px; }
+.notes h2 { font-size: 13px; margin: 10px 0 4px; }
+.notes h2:first-child { margin-top: 0; }
+
+@media (min-width: 768px) {
+  .kpis { grid-template-columns: repeat(4, 1fr); }
+  .kpis div { border-bottom: none; }
+  .kpis div:last-child { border-right: none; }
+  .ways, .two { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 1024px) {
+  body { padding: 24px 48px; }
+  .grid { grid-template-columns: 2fr 1fr; }
+  .grid.upload { grid-template-columns: 220px 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="meta">
+  <h1>마켓 — 판매 관리 + 새 모델 올리기 (M2) — 확정안 (보편 B 기반)</h1>
+  <div><b>목적</b> 내가 올린 모델·버전을 관리하고(검증 중·반려·검증 통과·판매 중), 같은 화면 안에서 새 모델을 올린다: ① 가져오기 → ② 정보 → ③ 검증 → ④ 판매 설정.</div>
+  <div><b>진입점</b> 마켓 → 탭 "판매" (M1 구매 목록에서 탭 전환).</div>
+  <div><b>다음</b> "새 모델 올리기" → 같은 화면 올리기 모드(상태 2~5) · 검증 시작 후엔 창을 떠나도 됨(표에 "검증 중" 행으로 남음) · 판매 시작 → M1 구매 목록에 노출 · 탭 "구매" → M1.</div>
+  <div><b>가정</b> 로그인 + 판매자. 성적은 오딘 검증이 채움(판매자 입력 불가). 모델 코드는 증권 키·외부 전송·직접 주문 불가(자동 검사). 실행 위치 미정(보류 #14) · 과금 방식 미정(보류 #15) → {가격}. 판매 시작은 자본시장법 검토(보류 #5) 전까지 잠김.</div>
+  <div><b>상태</b> 1 관리(기본) · 2 올리기 ① 가져오기 · 3 올리기 ② 정보 · 4 올리기 ③ 검증 · 5 올리기 ④ 판매 설정 — 아래 프레임 순서.</div>
+  <div><b>작성일</b> 2026-09-15 · 판매 관리는 4안 중 보편 B 채택, 올리기 흐름은 보류안(보편 A 단계·실험 A LLM 관제·실험 B 미리보기) 조합 (시안: M2-market-sell-4안.html)</div>
+</div>
+
+<!-- ══════════════ 상태 1: 관리 ══════════════ -->
+<div class="state-head">상태 1 — 관리 (기본)</div>
+<div class="state-note">내 모델 표 + 선택한 행의 검증 리포트. 올리기는 오른쪽 위 버튼.</div>
+<div class="frame">
+  <div class="mk-top">
+    <div class="mk-tabs"><div>구매</div><div class="on">판매</div></div>
+    <span class="btn btn--pri">새 모델 올리기</span>
+  </div>
+  <div class="kpis">
+    <div><b>{3}</b>판매 중</div>
+    <div><b>{1}</b>검증 중</div>
+    <div><b>{1}</b>반려</div>
+    <div><b>{42}</b>이번 달 구매 수</div>
+  </div>
+  <div class="grid">
+    <div>
+      <div class="stat-filter"><div class="on">전체</div><div>판매 중</div><div>검증 통과</div><div>검증 중</div><div>반려</div></div>
+      <div class="scroll">
+        <table class="tbl">
+          <tr><th>모델</th><th>종류</th><th>버전</th><th>상태</th><th>기준선 대비</th><th>구매 수</th><th>가격</th></tr>
+          <tr><td><b>{모델명 A}</b></td><td>사고팔기 규칙</td><td>v{3}</td><td><span class="badge badge--on">판매 중</span></td><td>{+11.4%p}</td><td>{31}</td><td>{가격}</td></tr>
+          <tr class="sel"><td><b>{모델명 A}</b></td><td>사고팔기 규칙</td><td>v{4}</td><td><span class="badge">반려</span></td><td>—</td><td>—</td><td>—</td></tr>
+          <tr><td><b>{모델명 H}</b></td><td>종목 고르기</td><td>v{1}</td><td><span class="badge badge--dash">검증 중</span></td><td>—</td><td>—</td><td>—</td></tr>
+          <tr><td><b>{모델명 K}</b></td><td>시장 상태 판단</td><td>v{1}</td><td><span class="badge">검증 통과</span></td><td>{+4.2%p}</td><td>—</td><td>{가격}</td></tr>
+          <tr><td><b>{모델명 I}</b></td><td>돈 배분/위험 관리</td><td>v{2}</td><td><span class="badge badge--on">판매 중</span></td><td>{+1.9%p}</td><td>{11}</td><td>{가격}</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="box">
+      <div class="sec-label">검증 리포트 · {모델명 A} v{4}</div>
+      <table class="check">
+        <tr><td>입출력 규격 (사고팔기 규칙 v1)</td><td><span class="badge badge--on">통과</span></td></tr>
+        <tr><td>증권 키 접근 없음</td><td><span class="badge badge--on">통과</span></td></tr>
+        <tr><td>외부 전송 없음</td><td><span class="badge badge--on">통과</span></td></tr>
+        <tr><td>직접 주문 없음</td><td><span class="badge badge--on">통과</span></td></tr>
+        <tr><td>미래 데이터 참조</td><td><span class="badge">위반</span></td></tr>
+        <tr><td>백테스트</td><td><span class="conf">중단됨</span></td></tr>
+      </table>
+      <div class="lbl">위반 위치</div>
+      <div class="mono">{signal.py:48} 당일 종가를 장중 판단에 사용</div>
+      <div class="lbl">올린 경로</div>
+      <div>{MCP · Claude} · {2026-09-15 14:18}</div>
+      <div class="foot"><span class="btn">리포트 전체</span><span class="btn btn--pri">수정본 올리기</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ 상태 2: 올리기 ① 가져오기 ══════════════ -->
+<div class="state-head">상태 2 — 새 모델 올리기 ① 가져오기</div>
+<div class="state-note">표가 왼쪽 좁은 목록으로 줄고, 오른쪽이 올리기 칸. 통로 두 개: LLM이 MCP로 보낸 모델(승인 대기) / 코드 파일 직접.</div>
+<div class="frame">
+  <div class="mk-top">
+    <div class="mk-tabs"><div>구매</div><div class="on">판매</div></div>
+  </div>
+  <div class="grid upload">
+    <div class="mini-list">
+      <div class="new"><span>새 모델</span><span class="conf">올리는 중</span></div>
+      <div><span>{모델명 A} v{3}</span><span class="badge badge--on">판매 중</span></div>
+      <div><span>{모델명 A} v{4}</span><span class="badge">반려</span></div>
+      <div><span>{모델명 H} v{1}</span><span class="badge badge--dash">검증 중</span></div>
+      <div><span>{모델명 K} v{1}</span><span class="badge">검증 통과</span></div>
+      <div><span>{모델명 I} v{2}</span><span class="badge badge--on">판매 중</span></div>
+    </div>
+    <div class="box box--up">
+      <div class="up-head"><b>새 모델 올리기</b><span class="btn">닫기</span></div>
+      <div class="steps"><div class="on">① 가져오기</div><div>② 정보</div><div>③ 검증</div><div>④ 판매 설정</div></div>
+      <div class="ways">
+        <div class="way on">
+          <div class="way-title"><span class="chk on"></span>LLM이 MCP로 보낸 모델</div>
+          <div class="conf">MCP 연결: <span class="badge badge--on">연결됨 · {Claude}</span> <span class="mono">토큰 ••••{끝 4자리}</span></div>
+          <div class="sec-label">승인 대기</div>
+          <div class="queue">
+            <div><span><b>{모델명 J}</b><br><span class="conf">사고팔기 규칙 · {14:18} · 백테스트 3회 후 요청</span></span><span class="btn btn--pri">선택</span></div>
+            <div><span><b>{모델명 L}</b><br><span class="conf">종목 고르기 · {어제 21:40}</span></span><span class="btn">선택</span></div>
+          </div>
+          <div class="sec-label">LLM에게 주는 재료</div>
+          <div class="conf">규격 문서 4종 · 시장 온도·파라미터 조회 · 과거 시세 {2년} · 백테스트 하루 {20}회 · 업로드 요청(사람 승인)</div>
+          <div class="foot"><span class="btn">연결 설정</span><span class="btn">LLM 활동 기록</span></div>
+        </div>
+        <div class="way">
+          <div class="way-title"><span class="chk"></span>코드 파일</div>
+          <div class="lbl">종류</div>
+          <div class="field">선택 ▾ (규격 문서 함께 표시)</div>
+          <div class="drop">모듈 파일 끌어놓기</div>
+          <div class="conf" style="margin-top:6px">규격 문서 내려받기 · 예제 모듈</div>
+        </div>
+      </div>
+      <div class="foot"><span class="btn">취소</span><span class="btn btn--pri">다음: 정보</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ 상태 3: 올리기 ② 정보 ══════════════ -->
+<div class="state-head">상태 3 — 새 모델 올리기 ② 정보</div>
+<div class="state-note">왼쪽 입력, 오른쪽은 구매 목록에 실제로 보일 카드. 성적 칸은 검증이 채움(판매자 입력 없음).</div>
+<div class="frame">
+  <div class="grid upload">
+    <div class="mini-list">
+      <div class="new"><span>{모델명 J}</span><span class="conf">올리는 중</span></div>
+      <div><span>{모델명 A} v{3}</span><span class="badge badge--on">판매 중</span></div>
+      <div><span>{모델명 H} v{1}</span><span class="badge badge--dash">검증 중</span></div>
+    </div>
+    <div class="box box--up">
+      <div class="up-head"><b>새 모델 올리기</b><span class="btn">닫기</span></div>
+      <div class="steps"><div class="done">① 가져오기</div><div class="on">② 정보</div><div>③ 검증</div><div>④ 판매 설정</div></div>
+      <div class="two">
+        <div>
+          <div class="lbl">가져온 모델</div>
+          <div>{모델명 J} · MCP · {Claude} · {14:18}</div>
+          <div class="lbl">종류</div>
+          <div class="field">사고팔기 규칙 <span class="conf">모델이 선언한 규격에서 자동</span></div>
+          <div class="lbl">이름</div>
+          <div class="field">{모델명 J}</div>
+          <div class="lbl">버전</div>
+          <div class="field">v1 <span class="conf">새 모델</span></div>
+          <div class="lbl">한 줄 설명</div>
+          <div class="field">{한 줄 설명}</div>
+        </div>
+        <div>
+          <div class="sec-label">구매 목록 미리보기</div>
+          <div class="pv">
+            <span class="badge">사고팔기 규칙</span> <span class="badge badge--dash">검증 전</span>
+            <div class="nm">{모델명 J}</div>
+            <div class="conf">{판매자} · v1 · {한 줄 설명}</div>
+            <div class="img-ph fill"><span>자산 곡선 — 검증 후</span></div>
+            <div class="kpi"><div class="fill"><b>—</b>수익률</div><div class="fill"><b>—</b>최대 낙폭</div><div class="fill"><b>—</b>기준선 대비</div></div>
+          </div>
+          <div class="conf" style="margin-top:6px">회색 칸 = 검증이 채움</div>
+        </div>
+      </div>
+      <div class="foot"><span class="btn">이전</span><span class="btn btn--pri">검증 시작</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ 상태 4: 올리기 ③ 검증 ══════════════ -->
+<div class="state-head">상태 4 — 새 모델 올리기 ③ 검증</div>
+<div class="state-note">자동 검사는 즉시, 백테스트는 시간이 걸림 → 창을 닫아도 표에 "검증 중" 행으로 남고 끝나면 알림.</div>
+<div class="frame">
+  <div class="grid upload">
+    <div class="mini-list">
+      <div class="new"><span>{모델명 J} v1</span><span class="badge badge--dash">검증 중</span></div>
+      <div><span>{모델명 A} v{3}</span><span class="badge badge--on">판매 중</span></div>
+      <div><span>{모델명 H} v{1}</span><span class="badge badge--dash">검증 중</span></div>
+    </div>
+    <div class="box box--up">
+      <div class="up-head"><b>새 모델 올리기</b><span class="btn">닫기 — 검증은 계속</span></div>
+      <div class="steps"><div class="done">① 가져오기</div><div class="done">② 정보</div><div class="on">③ 검증</div><div>④ 판매 설정</div></div>
+      <div class="two">
+        <div>
+          <div class="sec-label">자동 검사</div>
+          <table class="check">
+            <tr><td>입출력 규격 (사고팔기 규칙 v1)</td><td><span class="badge badge--on">통과</span></td></tr>
+            <tr><td>증권 키 접근 없음</td><td><span class="badge badge--on">통과</span></td></tr>
+            <tr><td>외부 전송 없음</td><td><span class="badge badge--on">통과</span></td></tr>
+            <tr><td>직접 주문 없음</td><td><span class="badge badge--on">통과</span></td></tr>
+            <tr><td>실행 시간 {1분} 이내</td><td><span class="badge badge--on">통과</span></td></tr>
+          </table>
+        </div>
+        <div>
+          <div class="sec-label">백테스트</div>
+          <div>{62%} · {2024-08 ~ 2026-09}</div>
+          <div class="bar"><i></i></div>
+          <div class="lbl">미래 데이터 참조 검사</div>
+          <div><span class="badge badge--dash">진행 중</span></div>
+          <div class="lbl">기준선 비교</div>
+          <div class="conf">백테스트 끝나면</div>
+        </div>
+      </div>
+      <div class="foot"><span class="btn">이전</span><span class="btn btn--off">다음: 판매 설정</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ 상태 5: 올리기 ④ 판매 설정 ══════════════ -->
+<div class="state-head">상태 5 — 새 모델 올리기 ④ 판매 설정</div>
+<div class="state-note">검증 통과 후. 미리보기 카드에 성적이 채워짐. 가격 방식 미정, 판매 시작은 법적 검토 전까지 잠김 → "검증 통과"로 저장.</div>
+<div class="frame">
+  <div class="grid upload">
+    <div class="mini-list">
+      <div class="new"><span>{모델명 J} v1</span><span class="badge">검증 통과</span></div>
+      <div><span>{모델명 A} v{3}</span><span class="badge badge--on">판매 중</span></div>
+      <div><span>{모델명 H} v{1}</span><span class="badge badge--dash">검증 중</span></div>
+    </div>
+    <div class="box box--up">
+      <div class="up-head"><b>새 모델 올리기</b><span class="btn">닫기</span></div>
+      <div class="steps"><div class="done">① 가져오기</div><div class="done">② 정보</div><div class="done">③ 검증</div><div class="on">④ 판매 설정</div></div>
+      <div class="two">
+        <div>
+          <div class="lbl">검증 결과</div>
+          <div><span class="badge badge--on">자동 검사 통과</span> <span class="badge badge--on">백테스트 통과</span></div>
+          <div class="lbl">가격</div>
+          <div class="field">{가격} <span class="conf">과금 방식 미정</span></div>
+          <div class="lbl">공개</div>
+          <div><span class="chk on"></span>구매 목록에 노출</div>
+        </div>
+        <div>
+          <div class="sec-label">구매 목록 미리보기</div>
+          <div class="pv">
+            <span class="badge">사고팔기 규칙</span> <span class="badge badge--on">검증 통과</span>
+            <div class="nm">{모델명 J}</div>
+            <div class="conf">{판매자} · v1 · {한 줄 설명}</div>
+            <div class="img-ph"><span>자산 곡선 {기간}</span></div>
+            <div class="kpi"><div><b>{+12.1%}</b>수익률</div><div><b>{-8.4%}</b>최대 낙폭</div><div><b>{+5.3%p}</b>기준선 대비</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="foot"><span class="btn">검증 통과로 저장</span><span class="btn btn--off">판매 시작 (잠김)</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="notes">
+  <h2>의도</h2>
+  판매 관리와 새 모델 올리기를 한 화면에 — 올리는 동안에도 내 모델 목록이 왼쪽에 줄어든 채 남아, 올리는 모델이 그 목록의 한 줄("올리는 중" → "검증 중" → "검증 통과")로 자리 잡는 과정이 보인다.
+  올리기 흐름은 4안의 보류안을 조합: 단계 표시(보편 A) + LLM·MCP 통로와 승인 대기(실험 A) + 구매 목록 카드 미리보기(실험 B).
+  모델은 화면에서 만들지 않는다 — 사용자의 LLM이 밖에서 만들어 MCP로 보내면 "승인 대기"에 쌓이고, 사람이 골라 올린다(업로드는 항상 사람 승인). 코드 파일 통로는 규격 문서·예제와 함께.
+  성적은 판매자가 쓸 수 없고 검증이 채운다. 백테스트는 오래 걸리니 창을 닫아도 검증은 계속(표의 "검증 중" 행). 판매 시작은 법적 검토(보류 #5) 전까지 잠그고 "검증 통과"로 저장.
+  <h2>대안</h2>
+  보편 A 단독(올리기 전용 전체 화면 마법사) — 관리 목록과 끊겨 채택 안 함. 실험 A 단독(LLM 관제탑이 판매 탭 전체) — 코드 통로·관리 기능이 약해 ① 가져오기 칸 안으로 축소.
+  모델 상세 화면 — 사용자 판단으로 불필요(2026-09-15). 구매는 구매 목록 카드에서 바로.
+  <h2>미정</h2>
+  부품 4종 입출력 규격(자동 검사 기준 자체·종류 자동 판별 근거). 백테스트 기간·비용 가정·통과 기준(기준선 대비 몇 이상?).
+  MCP 도구 목록과 호출 한도, LLM 활동 기록 화면 범위. 반려 후 재검증 비용·횟수. 버전 올릴 때 기존 구매자 처리.
+  가격 입력 방식(보류 #15). 실행 위치(보류 #14). 검증 끝 알림 수단(앱 알림/텔레그램).
+</div>
+
+</body>
+</html>
