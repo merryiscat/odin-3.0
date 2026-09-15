@@ -17,8 +17,10 @@
 --     8. flat      횡보               — 지수 당일 등락률 ±0.3% 안
 --   대금 폭증 = (당일 누적 대금 ÷ 직전 20일 평균, 장중엔 같은 시각끼리 비교)이
 --   그 시장의 최근 1년 비율 분포에서 상위 10% (매직넘버 대신 백분위 — 현재 실측 약 1.37배).
---   주간(scope=w) 어휘 — 국면·태도: depression(대공황)·uptrend(상승장)·downtrend(하락장)·
---   overheat(과열)·무드 등. 조건은 주간 설계 때(20일 이평 배경이 재료).
+--   주간(scope=w) — 매매로직 결정용 이름표 하나(2026-09-15 확정: 모델은 이름표만 읽음 → state_code 한 칸,
+--   방향·변동성 등 계산값은 metrics에). 운영 시 실시간 갱신(창 = 최근 5거래일), 기간 고정 없음.
+--   어휘 후보(미확정): uptrend(상승장)·box(박스권)·volatile(변동장)·downtrend(하락장)·emergency(긴급 —
+--   서킷브레이커급 폭락, 크기 기준). 매매로직 목록 확정 후 이름표·조건 확정.
 --   삭제: theme_down(불필요), rebound_try("실시간=상승 + 주간=하락장" 조합으로 파생).
 --   기계(모델·프로그램)는 state_code·state_sectors만 매칭하고, 사람용 문구는 label_kr에.
 --
@@ -66,7 +68,7 @@ create index if not exists idx_smt_lookup on state_market_temp (market, model_id
 
 -- ── 표/칸 설명(문서화) ──────────────────────────────────────────────────
 comment on table  state_market_temp is '시장 온도 판정 output(예측모델별, model_id로 구분). 상태는 단일값(우선순위로 하나만). append만·매분 저장(이력 보존).';
-comment on column state_market_temp.state_code    is '실시간(rt): crash/theme_up/up/down/flat. 주간(w): depression/uptrend/downtrend/overheat 등(설계 예정). 모델은 이 코드로 매칭.';
+comment on column state_market_temp.state_code    is '실시간(rt): crash/theme_up/up/down/flat. 주간(w): 매매로직 결정용 이름표 하나(어휘 설계 중 — uptrend/box/volatile/downtrend/emergency 후보). 모델은 이 코드로 매칭.';
 comment on column state_market_temp.state_sectors is 'theme_up일 때 역행 상승한 업종(sector_l1) 목록 — 상승률 순 jsonb 배열. 그 외 NULL.';
 comment on column state_market_temp.horizon      is 'now=현재 상태(기본 모델). 미래 예측모델은 d1·w1 등 — 같은 표에서 병행·채점하기 위한 칸.';
 comment on column state_market_temp.label_kr     is '사람용 문구(GUI 표시). 문구는 언제든 다듬을 수 있으니 기계 매칭 금지 — 코드로만.';

@@ -110,6 +110,15 @@ body { font-family: 'SUIT Variable', SUIT, 'Malgun Gothic', sans-serif;
 
 .pending { font-size: 12px; color: var(--muted); }
 
+/* 주간 — 이름표 하나 + 근거 한 줄 + 최근 10거래일 주간 띠 (2026-09-15, 초안 규칙)
+   색: 상승장 빨강 / 하락장 파랑 / 박스권 회색 / 변동장 먹색(방향 없음) / 긴급 = 파랑 바탕 반전 */
+.word.ink { color: var(--ink); }
+.word.emg { color: #fff; background: var(--down); padding: 1px 8px; border-radius: 3px; }
+.strip i.ink { background: var(--ink); } .strip i.emg { background: var(--down); outline: 2px solid var(--ink); outline-offset: -2px; }
+.w-why { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.w-why b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.w-draft { font-size: 10.5px; color: var(--muted); margin-left: 8px; font-weight: 500; letter-spacing: 0; text-transform: none; }
+
 /* 해외 시장 — Koyfin식 표 */
 .tbl { width: 100%; border-collapse: collapse; }
 .tbl td { padding: 8px 14px; font-size: 12.5px; border-top: 1px solid var(--line); }
@@ -170,6 +179,16 @@ const STATE = {
   down:     { nm: "하락",       fam: "down" },
   flat:     { nm: "횡보",       fam: "flat" },
 };
+
+/* 주간 어휘 (state_module/w_rules.py LABEL_KR과 동일, 초안 모델 rule-temp-w-v0) — 화면은 계산하지 않고 DB 줄만 읽는다 */
+const WEEK = {
+  emergency: { nm: "긴급",   fam: "emg"  },
+  downtrend: { nm: "하락장", fam: "down" },
+  uptrend:   { nm: "상승장", fam: "up"   },
+  volatile:  { nm: "변동장", fam: "ink"  },
+  box:       { nm: "박스권", fam: "flat" },
+};
+const W_MODEL = "rule-temp-w-v0";
 
 /* 업종 줄임말 — state_module/rt_rules.py SECTOR_SHORT와 같게 유지(표시 전용).
    원문(sector_l1)엔 '·'가 들어 있어 여러 업종을 이어 붙이면 경계가 안 보인다. 없는 이름은 그대로. */
@@ -233,6 +252,30 @@ function stripHtml(hist) {
     <div class="strip-nm">${hist.map(h => (STATE[h.state]||STATE.flat).nm).join(" · ")}</div>`;
 }
 
+function signed(v, digits = 2) {
+  return v == null ? "—" : `${v > 0 ? "+" : ""}${Number(v).toFixed(digits)}%`;
+}
+
+/* 주간 칸: 이름표 + 왜 그렇게 판정했나(근거 한 줄) + 최근 10거래일 주간 띠 */
+function weekHtml(w) {
+  if (w === undefined) return `<div class="pending">설계 중</div>`;               // 목데이터(미국 탭 등)
+  if (!w) return `<div class="pending">주간 판정 없음 — 아직 DB에 기록 전</div>`;
+  const W = WEEK[w.state] || WEEK.box;
+  const m = w.metrics || {};
+  const why = w.state === "emergency"
+    ? `오늘 장중 최저 <b>${signed(m.low_pct_today, 1)}</b> — 서킷브레이커급(−8% 이하)`
+    : `최근 5거래일 <b>${signed(m.chg5, 1)}</b> · 5일 평균 진폭 <b>${m.rng5 == null ? "—" : Number(m.rng5).toFixed(2) + "%"}</b>`
+      + (m.rng_threshold == null ? " (변동장 기준 없음)" : ` / 변동장 기준 ${Number(m.rng_threshold).toFixed(2)}%`);
+  const cells = (w.hist || []).map(h => {
+    const H = WEEK[h.state] || WEEK.box;
+    return `<i class="${H.fam}" title="${h.d} ${H.nm}"></i>`;
+  }).join("");
+  return `<span class="word ${W.fam}">${W.nm}</span><span class="sub">${w.asof} 종가 기준</span>
+    <div class="w-why">${why}</div>
+    ${cells ? `<div class="strip">${cells}</div>
+    <div class="strip-nm">${(w.hist || []).map(h => (WEEK[h.state] || WEEK.box).nm).join(" · ")}</div>` : ""}`;
+}
+
 /* 판정 재료 구분(실시간·끊김·장 마감·종가)은 상단바 한 곳에만 표시 — 카드 머리줄 꼬리표는 뺌(2026-09-14 검수) */
 function marketCard(mk) {
   const S = STATE[mk.state] || STATE.flat;
@@ -258,8 +301,8 @@ function marketCard(mk) {
       </div>
       ${breadthHtml(mk.b)}
       ${stripHtml(mk.hist)}
-      <div class="sec">주간</div>
-      <div class="pending">설계 중 — 국면(상승장·하락장·대공황·과열)과 매도 태도가 여기 표시될 예정</div>
+      <div class="sec">주간<span class="w-draft">초안 규칙</span></div>
+      ${weekHtml(mk.week)}
     </div>
   </div>`;
 }
@@ -304,7 +347,7 @@ async function loadKR(now = new Date()) {
   const sb = window.supabase.createClient(SB_URL, SB_KEY);
   const today = kst(now).date;
   const dayStart = `${today}T00:00:00+09:00`;
-  const [st, ix, live, snap] = await Promise.all([
+  const [st, ix, live, snap, wk] = await Promise.all([
     sb.from("state_market_temp")
       .select("as_of,market,state_code,state_sectors,breadth_up,breadth_down,breadth_total,metrics")
       .eq("model_id", MODEL).eq("scope", "rt").eq("basis", "eod")
@@ -321,8 +364,14 @@ async function loadKR(now = new Date()) {
       .select("ts,market,price,change_pct,source")
       .eq("kind", "index").in("market", MARKETS).gte("ts", dayStart)
       .order("ts", { ascending: false }).limit(20),
+    /* 주간 판정(scope=w) — 시장별 최신 줄 + 최근 10거래일 띠. 두 시장이라 넉넉히 40줄 */
+    sb.from("state_market_temp")
+      .select("as_of,market,state_code,metrics")
+      .eq("model_id", W_MODEL).eq("scope", "w")
+      .order("as_of", { ascending: false }).limit(40),
   ]);
   for (const r of [st, ix, live, snap]) if (r.error) throw r.error;
+  if (wk.error) console.warn("주간 판정 조회 실패:", wk.error.message);   // 주간이 없어도 실시간 카드는 그린다
 
   const nowK = kst(now);
   const inSession = nowK.hm >= "09:00" && nowK.hm <= "15:35";
@@ -350,6 +399,11 @@ async function loadKR(now = new Date()) {
       hist: eodRows.slice(0, 10).reverse().map(r => ({ d: String(r.as_of).slice(5, 10), state: r.state_code })),
       asof: kst(new Date(row.as_of)).date, asofHm: kst(new Date(row.as_of)).hm,
     };
+    const wRows = wk.error ? [] : wk.data.filter(r => r.market === m);
+    card.week = wRows.length ? {
+      state: wRows[0].state_code, metrics: wRows[0].metrics, asof: kst(new Date(wRows[0].as_of)).date,
+      hist: wRows.slice(0, 10).reverse().map(r => ({ d: kst(new Date(r.as_of)).date.slice(5), state: r.state_code })),
+    } : null;
     if (mode === "eod") {
       card.px = fmtPx(idx[0].close);
       card.chg = (Number(idx[0].close) / Number(idx[1].close) - 1) * 100;
