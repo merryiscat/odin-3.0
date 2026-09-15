@@ -36,17 +36,25 @@ button, input, select { font-family: inherit; }
 .tab { background: none; border: 0; padding: 6px 12px; cursor: pointer; font-size: 12px; font-weight: 500;
        color: var(--chrome-muted); border-radius: 4px; }
 .tab.on { background: var(--chrome-2); color: var(--chrome-ink); font-weight: 700; }
+/* 개정 번호는 화면에 안 보이게 body[data-rev]로만(2026-09-16 검수 "빼") — 검수 어긋남 확인용 */
 
 /* ── 사이드바 (market-temp.html과 동일 구조) ── */
 .wrap { flex: 1; display: flex; min-height: 0; }
 .side { width: 192px; flex: none; background: var(--chrome); padding: 16px 0; overflow-y: auto; }
-.nav-group { font-size: 10px; font-weight: 500; letter-spacing: .16em; color: var(--chrome-muted);
-             padding: 14px 20px 6px; text-transform: uppercase; }
-.nav { display: block; font-size: 13px; padding: 7px 20px; color: var(--chrome-muted); font-weight: 400;
+/* 사이드바 위계 통일(2026-09-16 사용자 지정): 제목 = 파이프라인·마켓·연구소·계좌·리서치(14px 굵게),
+   소제목 = 그 아래 항목 전부(12px, 34px 들여쓰기). 접기 화살표는 묶음 제목(링크 아닌 것)에만. */
+.nav-group { font-size: 14px; font-weight: 700; color: var(--chrome-muted);
+             padding: 7px 20px; margin-top: 14px; cursor: pointer; }
+.nav-group:first-child { margin-top: 0; }
+.nav-group::after { content: "▾"; float: right; font-size: 10px; margin-top: 3px; }   /* 접기 표시(순수 기호) */
+.nav-group.closed::after { content: "▸"; }
+.nav.hid { display: none; }
+.nav { display: block; font-size: 12px; padding: 7px 20px 7px 34px; color: var(--chrome-muted); font-weight: 400;
        text-decoration: none; cursor: default; border-left: 2px solid transparent; }
-a.nav[href$=".html"] { cursor: pointer; }
+a.nav[href*=".html"] { cursor: pointer; }   /* ?tab=… 붙은 하위 메뉴도 손가락 커서 */
 .nav.on { color: var(--chrome-ink); font-weight: 700; background: var(--chrome-2); border-left-color: var(--accent); }
-.nav.solo { margin-top: 14px; }   /* 묶음 없이 홀로 서는 항목 — 클래스명 top은 상단바(.top)와 겹쳐 줄이 48px로 부풀었음 */
+/* 제목이면서 링크인 항목(마켓·계좌) — 묶음 제목과 같은 크기 (클래스명 top은 상단바 .top과 겹침 주의) */
+.nav.solo { margin-top: 14px; font-size: 14px; font-weight: 700; padding-left: 20px; }
 .main { flex: 1; min-width: 0; overflow-y: auto; padding: 16px; }
 
 /* ── 패널 공통 ── */
@@ -81,9 +89,8 @@ label.chk { display: flex; align-items: center; gap: 7px; font-size: 12.5px; pad
 label.chk input { accent-color: var(--ink); }
 
 /* ═════ 구매 ═════ */
-.buy { display: grid; grid-template-columns: 200px 1fr; gap: 12px; align-items: start; }
-.buy > * { min-width: 0; }
-.filter .p-body { padding: 10px 14px 14px; }
+/* 필터 패널 제거(2026-09-15 사용자 지정 "탭으로만 구분") — 종류 탭 + 검색·정렬만 남김 */
+.buy { min-width: 0; }
 /* 종류 탭 — 시장 상태 판단 · 종목 선정 · 매매모델 (필터 체크 대신, 2026-09-15 사용자 지정) */
 .ttabs { display: flex; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
 .ttabs button { background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px;
@@ -164,23 +171,24 @@ label.chk input { accent-color: var(--ink); }
 .preview-cap { font-size: 10.5px; color: var(--muted); margin-top: 6px; }
 .blank b { color: var(--flat); }
 
+/* 모델 상세 — 목록 아래가 아니라 새 창(모달)으로(2026-09-16 검수) */
+.modal-back { position: fixed; inset: 0; background: rgba(23, 24, 28, .45); z-index: 50;
+              display: flex; align-items: center; justify-content: center; padding: 24px; }
+.modal { width: min(940px, 100%); max-height: 86vh; overflow-y: auto;
+         box-shadow: 0 12px 40px rgba(0, 0, 0, .25); }
+
 @media (max-width: 1080px) {
-  .buy { grid-template-columns: 1fr; }
   .sell, .sell.upload { grid-template-columns: 1fr; }
   .ways, .two { grid-template-columns: 1fr; }
   .kpis { grid-template-columns: repeat(2, 1fr); }
 }
 </style>
 </head>
-<body>
+<body data-rev="r6">
 
 <header class="top">
   <span class="logo">ODIN</span>
   <span class="clock"><span class="dot"></span>예시 데이터 <span class="note" style="color:var(--chrome-muted)">— 마켓 DB 설계 전 · 구매·판매 개시는 과금 방식·법적 검토 뒤</span></span>
-  <div class="tabs" id="tabs">
-    <button class="tab on" data-tab="buy">구매</button>
-    <button class="tab" data-tab="sell">판매</button>
-  </div>
 </header>
 
 <div class="wrap">
@@ -189,8 +197,11 @@ label.chk input { accent-color: var(--ink); }
     <a class="nav" href="market-temp.html">시장 온도</a>
     <a class="nav" href="#">매매리스트</a>
     <a class="nav" href="#">매매모델</a>
-    <a class="nav solo on" href="market.html">마켓</a>
+    <div class="nav-group">마켓</div>
+    <a class="nav on" data-mtab="analysis" href="market.html">리스트</a>
+    <a class="nav" data-mtab="upload" href="market.html?tab=upload">업로드</a>
     <div class="nav-group">연구소</div>
+    <a class="nav" href="#">피쳐셋 분석</a>
     <a class="nav" href="#">모델</a>
     <a class="nav" href="#">실험</a>
     <a class="nav solo" href="#">계좌</a>
@@ -205,10 +216,10 @@ label.chk input { accent-color: var(--ink); }
 
 <script>
 /* ═══════════ 예시 데이터 (마켓 DB 설계 전) ═══════════ */
-/* 부품 3종 — 2026-09-15 사용자 지정(탭 순서 = 파이프라인 순서). 옛 4종의 사고팔기 규칙·돈 배분/위험 관리는 매매모델로 합침 */
+/* 부품 3종 — 이름은 사이드바 파이프라인 항목과 동일하게(2026-09-16 사용자 지정). 옛 4종의 사고팔기 규칙·돈 배분/위험 관리는 매매모델로 합침 */
 const TYPES = {
-  state: "시장 상태 판단",
-  pick:  "종목 선정",
+  state: "시장 온도",
+  pick:  "매매리스트",
   trade: "매매모델",
 };
 /* 종류별 카드 숫자 3개 — 현재 초안 */
@@ -221,7 +232,8 @@ const MODELS = [
   { id: "m1", name: "눌림목 반등 매매", type: "trade", seller: "판매자 A", ver: 3, desc: "상승장 중 3일 연속 하락 후 반등 진입", free: false, k: [18.2, -9.1], vs: 11.4, mdd: -9.1, seed: 3 },
   { id: "m2", name: "업종 순환 선별", type: "pick", seller: "판매자 B", ver: 2, desc: "대장주가 역행 상승한 업종에서 후보 선별", free: false, k: [7.5, 21], vs: 3.1, mdd: null, seed: 7 },
   { id: "m3", name: "오딘 기본 매매", type: "trade", seller: "오딘", odin: true, ver: 1, desc: "시장 온도 상태에 따른 기본 진입·청산 규칙", free: true, k: [9.0, -7.8], vs: 2.2, mdd: -7.8, seed: 11 },
-  { id: "m4", name: "rule-temp-rt-v1", type: "state", seller: "오딘", odin: true, ver: 1, desc: "실시간 시장 온도 8상태 판정", free: true, k: [61, 498], vs: 9.0, mdd: null, seed: 5 },
+  /* 시장 온도 화면의 판정 모델과 같은 것 — 이름·설명을 화면 상단 "기본 모델" 표기와 동기화(2026-09-16) */
+  { id: "m4", name: "기본 모델", type: "state", seller: "오딘", odin: true, ver: 1, desc: "코스피·코스닥 × 실시간·주간 시장 온도 판정", free: true, k: [61, 498], vs: 9.0, mdd: null, seed: 5 },
   { id: "m5", name: "변동성 역가중 매매", type: "trade", seller: "판매자 C", ver: 2, desc: "출렁임 큰 종목일수록 비중을 줄여 진입", free: false, k: [5.2, -6.0], vs: 1.9, mdd: -6.0, seed: 13 },
   { id: "m6", name: "거래대금 급증 선별", type: "pick", seller: "판매자 D", ver: 1, desc: "평소 대비 대금 급증 종목 중 대장주 위주", free: false, k: [4.2, 14], vs: 0.8, mdd: null, seed: 17 },
   { id: "m7", name: "갭 하락 되돌림", type: "trade", seller: "판매자 E", ver: 1, desc: "시가 갭 하락 후 장중 되돌림 구간 매매", free: false, k: [4.1, -15.2], vs: -2.7, mdd: -15.2, seed: 19 },
@@ -272,93 +284,152 @@ function curve(seed, drift, W = 220, H = 44) {
     <polyline points="${xy}" fill="none" stroke="${col}" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>`;
 }
 
+function kpiFmt(m, i, v) {
+  if (m.type === "state") return i === 0 ? `${v}%` : `${v}`;
+  if (m.type === "pick") return i === 1 ? `${v}` : `<span class="${cls(v)}">${sign(v)}%p</span>`;
+  return `<span class="${cls(v)}">${sign(v)}%</span>`;
+}
+
 function kpiCells(m) {
   const L = KPI_LABELS[m.type];
-  const fmt = (i, v) => {
-    if (m.type === "state") return i === 0 ? `${v}%` : `${v}`;
-    if (m.type === "pick") return i === 1 ? `${v}` : `<span class="${cls(v)}">${sign(v)}%p</span>`;
-    return `<span class="${cls(v)}">${sign(v)}%</span>`;
-  };
   return `<div class="kpi">
-    <div><b>${fmt(0, m.k[0])}</b>${L[0]}</div>
-    <div><b>${fmt(1, m.k[1])}</b>${L[1]}</div>
+    <div><b>${kpiFmt(m, 0, m.k[0])}</b>${L[0]}</div>
+    <div><b>${kpiFmt(m, 1, m.k[1])}</b>${L[1]}</div>
     <div><b class="${cls(m.vs)}">${m.base ? "0" : sign(m.vs) + "%p"}</b>${L[2]}</div>
   </div>`;
 }
 
-/* ═══════════ 구매 ═══════════ */
-const BUY = { type: "state", aboveBase: true, mdd10: false, odin: true, seller: true, free: true, paid: true, showBase: true, q: "", sort: "vs", hint: {} };
+/* ═══════════ 구매(모델 탭) ═══════════ */
+/* 필터 제거(2026-09-15 사용자 지정) — 구분은 종류 탭만. 기준선 카드는 항상 함께 표시(비교 윤리, 브레인 §6) */
+const BUY = { type: "state", q: "", sel: null, hint: {} };   /* sel = 상세 보기 중인 모델. 리스트만 · 정렬 고정 — 2026-09-15~16 사용자 지정 */
 
 function buyList(type = BUY.type) {
   const q = BUY.q.trim().toLowerCase();
   return MODELS.filter(m => {
     if (m.type !== type) return false;
-    if (m.base) return BUY.showBase && (!q || m.name.toLowerCase().includes(q));
-    if (BUY.aboveBase && m.vs < 0) return false;
-    if (BUY.mdd10 && m.mdd != null && m.mdd < -10) return false;
-    if (!BUY.odin && m.odin) return false;
-    if (!BUY.seller && !m.odin) return false;
-    if (!BUY.free && m.free) return false;
-    if (!BUY.paid && !m.free) return false;
+    if (m.base) return !q || m.name.toLowerCase().includes(q);
     if (q && !(m.name + m.seller + m.desc).toLowerCase().includes(q)) return false;
     return true;
-  }).sort((a, b) => BUY.sort === "name" ? a.name.localeCompare(b.name, "ko") : b.vs - a.vs);
+  }).sort((a, b) => b.vs - a.vs);
 }
 
-function cardHtml(m) {
-  const btn = m.base ? "" : `<button class="btn sm${m.free ? "" : " pri"}" data-buy="${m.id}">${m.free ? "받기" : "구매"}</button>`;
-  return `<div class="panel card${m.base ? " base" : ""}">
-    <div class="p-head"><span class="badge">${TYPES[m.type]}</span>${m.base ? '<span class="badge">비교용</span>' : '<span class="badge ok">검증 통과</span>'}</div>
+/* 모델 목록 — 표 한 줄(설명 문구 없이 이름만 — 2026-09-16 검수). 받기/구매는 상세 패널 안으로 */
+function listHtml(list) {
+  const L = KPI_LABELS[BUY.type];
+  return `<div class="panel"><div class="tbl-wrap"><table class="tbl">
+    <thead><tr><th>모델</th><th>판매자</th><th>버전</th><th>검증</th><th>${L[0]}</th><th>${L[1]}</th><th>${L[2]}</th><th>가격</th><th></th></tr></thead>
+    <tbody>${list.map(m => `<tr class="${BUY.sel === m.id ? "sel" : ""}">
+      <td><b>${esc(m.name)}</b></td>
+      <td>${esc(m.seller)}</td><td>v${m.ver}</td>
+      <td>${m.base ? '<span class="badge">비교용</span>' : '<span class="badge ok">검증 통과</span>'}</td>
+      <td>${kpiFmt(m, 0, m.k[0])}</td><td>${kpiFmt(m, 1, m.k[1])}</td>
+      <td><b class="${cls(m.vs)}">${m.base ? "0" : sign(m.vs) + "%p"}</b></td>
+      <td>${m.base ? "—" : m.free ? "무료" : "유료"}</td>
+      <td><button class="btn sm" data-detail="${m.id}">상세 보기</button></td>
+    </tr>`).join("")}</tbody></table></div></div>`;
+}
+
+/* ── 모델 상세 — 입력(무엇을 읽나)·출력(무엇을 내보내나)을 정규화된 표로(2026-09-16 사용자 지정).
+   내용은 종류별 표준 계약(모든 모델이 같은 표 규격을 읽고 씀 — 브레인 §3 "DB로만 대화") ── */
+const IO_SPEC = {
+  /* 시장 온도: 실제 판별기 코드(state_module)가 DB에서 읽고 쓰는 칼럼 그대로 —
+     LLM이 모델을 만들 때 이 표만 보고 입출력을 알 수 있어야 한다(2026-09-16 사용자 지정) */
+  state: {
+    in: [
+      ["raw_market_snapshot.price · change_pct (kind=index)", "지수 현재가 · 전일 대비 등락률(%)", "1분마다"],
+      ["raw_market_snapshot.acc_amount (kind=index)", "지수 누적 거래대금(백만원) — 장중 대금 배율의 분자", "1분마다"],
+      ["raw_market_snapshot.price · change_pct (kind=stock)", "업종 대장주 개별 등락률 — 폭(몇 개가 ±0.5% 넘게 움직였나)·역행 업종 재료", "1분마다"],
+      ["dim_basket.stock_code · sector_l1 (basket_type=leader)", "대장주 명부 — 시장별 업종 1위 21개(거래정지 제외)", "아침 1회"],
+      ["raw_index_ohlc.close", "지수 종가 — 전일·5거래일 전 종가, 20일 이평 배경", "하루 1회"],
+      ["raw_index_ohlc.high · low", "하루 진폭 — 5일 평균 진폭·직전 1년 분포(변동장 기준)", "하루 1회"],
+      ["raw_index_ohlc.trade_value", "하루 거래대금 — 직전 20일 평균 대비 배율·1년 상위 10% 기준(불장·투매)", "하루 1회"],
+      ["state_params.params (scope=bg_daily·intraday)", "공용 계산값 — 대금 폭증 기준(surge_threshold)·과거 같은 시각 누적 대금(장중 배율 분모)", "하루 1회 · 1분마다"],
+    ],
+    out: [
+      ["state_code", "상태 한 단어", "실시간 8개(crash·surge·theme_up·selloff·fire·up·down·flat) · 주간 5개(emergency·downtrend·uptrend·volatile·box)"],
+      ["state_sectors", "역행 상승 업종 목록(sector_l1 원문)", "테마주상승일 때만, 상승률 높은 순"],
+      ["state_conf", "확신도 0~1", "규칙 확정 전이면 빈칸 · 급락+전원 하락 = 1.0"],
+      ["breadth_up · breadth_down · breadth_total", "대장주 폭 — 오른/내린/표본 수", "폭 재료 없으면 빈칸"],
+      ["label_kr", "사람용 문구", "예: 테마주상승 — 반도체"],
+      ["metrics", "판정 근거 지표 묶음", "지수 등락 · 대금 배율과 기준 · 폭 세부 · 사용한 바스켓 등"],
+      ["model_id · rule_ver", "누가 어떤 규칙으로 판정했나", "마트 명부(dim_model)와 연결"],
+      ["scope · basis · as_of", "시야 · 재료 · 판정 시각", "rt(실시간)/w(주간) · live(1분)/eod(종가)"],
+    ],
+    outNote: "출력은 state_market_temp 표준 한 줄 — 어떤 모델이든 같은 규격이라 나란히 비교·교체 가능",
+  },
+  /* 매매리스트·매매모델은 모듈 설계 전 — 아래는 규격 초안(표·칼럼 이름은 확정 시 갱신) */
+  pick: {
+    in: [
+      ["state_market_temp.state_code · basis · as_of", "구독한 시장 온도 모델의 상태값", "구독"],
+      ["dim_stock.stock_code · sector_l1 · market_cap · status", "종목 마스터 — 업종·시총·거래 상태", "매일"],
+      ["raw_market_snapshot.price · change_pct · acc_amount (kind=stock)", "종목 시세·거래대금", "1분마다"],
+    ],
+    out: [
+      ["종목코드 목록(우선순위 순)", "매매 후보", "규격 초안 — 표 이름 확정 전"],
+      ["사유 · 점수", "왜 골랐나(종목마다 한 줄)", "규격 초안"],
+    ],
+    outNote: "출력은 매매리스트 표준 한 줄(규격 초안 — 모듈 설계 시 확정) — 매매모델이 이 목록에서 골라 매매",
+  },
+  trade: {
+    in: [
+      ["state_market_temp.state_code · basis · as_of", "구독한 시장 온도 모델의 상태값", "구독"],
+      ["매매리스트 출력(후보 종목·사유·점수)", "매매 후보 목록", "구독"],
+      ["보유 종목 · 현금 · 체결 기록", "실행 모듈이 기록한 계좌 상태", "매 판단 시"],
+    ],
+    out: [
+      ["order_intent — 종목 · 방향(사라/팔라) · 수량 · 근거", "주문 의도", "규격 초안 — 모듈 설계 시 확정"],
+    ],
+    outNote: "출력은 order_intent 표준 한 줄(규격 초안) — 실제 주문은 실행 모듈이 안전장치를 걸고 집행(모델은 제안만)",
+  },
+};
+
+function ioTable(rows, heads) {
+  return `<div class="tbl-wrap"><table class="tbl">
+    <thead><tr>${heads.map(h => `<th style="text-align:left">${h}</th>`).join("")}</tr></thead>
+    <tbody>${rows.map(r => `<tr>${r.map((c, i) =>
+      `<td style="text-align:left;white-space:normal;overflow-wrap:anywhere${i ? ";color:var(--muted)" : ""}">${c}</td>`).join("")}</tr>`).join("")}</tbody>
+  </table></div>`;
+}
+
+function detailHtml(m) {
+  const io = IO_SPEC[m.type];
+  const buy = m.base ? "" : `<button class="btn sm${m.free ? "" : " pri"}" data-buy="${m.id}">${m.free ? "받기" : "구매"}</button>`;
+  return `<div class="modal-back" data-modal-back><div class="modal panel">
+    <div class="p-head"><span class="p-title">모델 상세 — ${esc(m.name)}</span>
+      <span class="p-sub">${esc(m.seller)} · v${m.ver} · ${TYPES[m.type]}${m.base ? " · 비교용(구매 불가)" : ""}</span>
+      <button class="btn sm" style="margin-left:auto" data-detail-close>닫기</button></div>
     <div class="p-body">
-      <div class="nm">${esc(m.name)}</div>
-      <div class="by">${esc(m.seller)} · v${m.ver} · ${esc(m.desc)}</div>
-      ${curve(m.seed, m.vs)}
-      ${kpiCells(m)}
-      <div class="card-foot"><span class="price">${m.base ? "" : m.free ? "무료" : "유료"}</span>${btn}</div>
-      <div class="hint">${BUY.hint[m.id] || ""}</div>
+      <div class="two">
+        <div>
+          <div class="sec">입력 — 무엇을 읽나</div>
+          ${ioTable(io.in, ["파라미터", "출처(표)", "주기"])}
+        </div>
+        <div>
+          <div class="sec">출력 — 무엇을 내보내나</div>
+          ${ioTable(io.out, ["칸", "뜻", "값"])}
+          <div class="note" style="margin-top:8px">${io.outNote}</div>
+        </div>
+      </div>
+      <div class="row-btns"><span class="price">${m.base ? "" : m.free ? "무료" : "유료"}</span>${buy}</div>
+      <div class="note">${BUY.hint[m.id] || ""}</div>
     </div>
-  </div>`;
+  </div></div>`;
 }
 
 function renderBuy() {
   const list = buyList();
-  const chk = (key, label, on) => `<label class="chk"><input type="checkbox" data-f="${key}"${on ? " checked" : ""}>${label}</label>`;
+  const sel = BUY.sel && MODELS.find(m => m.id === BUY.sel && m.type === BUY.type);   // 다른 종류 탭이면 상세를 접는다
   $("#main").innerHTML = `<div class="buy">
-    <div class="panel filter">
-      <div class="p-head"><span class="p-title">필터</span></div>
-      <div class="p-body">
-        <div class="sec">성적</div>
-        ${chk("aboveBase", "기준선 이상만", BUY.aboveBase)}${BUY.type === "trade" ? chk("mdd10", "최대 낙폭 −10% 이내", BUY.mdd10) : ""}
-        <div class="sec">제공</div>
-        ${chk("odin", "오딘 기본 모델", BUY.odin)}${chk("seller", "판매자 모델", BUY.seller)}
-        <div class="sec">가격</div>
-        ${chk("free", "무료", BUY.free)}${chk("paid", "유료", BUY.paid)}
-        <div class="sec">비교</div>
-        ${chk("showBase", "기준선 카드 함께 보기", BUY.showBase)}
-      </div>
+    <div class="ttabs">${Object.entries(TYPES).map(([k, v]) =>
+      `<button data-ttab="${k}" class="${BUY.type === k ? "on" : ""}">${v}<span class="n">${buyList(k).filter(m => !m.base).length}</span></button>`).join("")}</div>
+    <div class="toolbar">
+      <span class="count">${list.filter(m => !m.base).length}개 모델</span>
+      <input type="search" id="q" placeholder="모델 이름 · 판매자 검색" value="${esc(BUY.q)}">
     </div>
-    <div>
-      <div class="ttabs">${Object.entries(TYPES).map(([k, v]) =>
-        `<button data-ttab="${k}" class="${BUY.type === k ? "on" : ""}">${v}<span class="n">${buyList(k).filter(m => !m.base).length}</span></button>`).join("")}</div>
-      <div class="toolbar">
-        <span class="count">${list.filter(m => !m.base).length}개 모델</span>
-        <input type="search" id="q" placeholder="모델 이름 · 판매자 검색" value="${esc(BUY.q)}">
-        <select id="sort"><option value="vs"${BUY.sort === "vs" ? " selected" : ""}>기준선 대비 순</option><option value="name"${BUY.sort === "name" ? " selected" : ""}>이름 순</option></select>
-      </div>
-      ${list.length ? `<div class="cards">${list.map(cardHtml).join("")}</div>`
-                    : `<div class="panel empty">조건에 맞는 모델이 없습니다.</div>`}
-      <div class="disclaim">성적은 오딘 공통 데이터 백테스트(2024-08 ~ 2026-09, 예시 값) · 과거 성적이며 미래 수익 아님</div>
-    </div>
+    ${list.length ? listHtml(list) : `<div class="panel empty">조건에 맞는 모델이 없습니다.</div>`}
+    ${sel ? detailHtml(sel) : ""}
   </div>`;
 }
-
-$("#main").addEventListener("change", e => {
-  const f = e.target.dataset.f;
-  if (f) {
-    BUY[f] = e.target.checked;
-    renderBuy();
-  } else if (e.target.id === "sort") { BUY.sort = e.target.value; renderBuy(); }
-});
 $("#main").addEventListener("input", e => {
   if (e.target.id === "q") {
     BUY.q = e.target.value;
@@ -423,10 +494,12 @@ function renderSell() {
     </div>`;
 }
 
-/* ── 새 모델 올리기 (같은 화면 안) ── */
+/* ── 새 모델 올리기 (업로드 탭) ── */
 function startUpload() {
   SELL.upload = { step: 1, way: "mcp", pick: MCP_QUEUE[0].id, name: MCP_QUEUE[0].name, type: MCP_QUEUE[0].type, desc: "", price: "", progress: 0, rowId: null };
-  renderSell();
+  TAB = "upload";
+  syncUrl();
+  render();
 }
 
 function miniList(u) {
@@ -555,7 +628,7 @@ function runVerify() {
     if (u.progress >= 100) {
       clearInterval(SELL.timer);
       Object.assign(row, { status: "passed", vs: 5.3, bt: "통과", checks: { spec: 1, key: 1, net: 1, order: 1, future: 1 } });
-      if (TAB === "sell") renderSell();
+      if (TAB === "upload") renderSell();   // 분석 탭(모델 목록)을 덮어쓰지 않게 업로드 탭에서만
       return;
     }
     const pct = $("#u-pct"), bar = $("#u-bar");
@@ -564,9 +637,14 @@ function runVerify() {
 }
 
 $("#main").addEventListener("click", e => {
-  const t = e.target.closest("[data-ttab],[data-buy],[data-seg],[data-row],[data-act],[data-way],[data-pick]");
+  const t = e.target.closest("[data-ttab],[data-detail],[data-detail-close],[data-modal-back],[data-buy],[data-seg],[data-row],[data-act],[data-way],[data-pick]");
   if (!t) return;
   if (t.dataset.ttab) { BUY.type = t.dataset.ttab; renderBuy(); }
+  else if (t.dataset.detail) { BUY.sel = t.dataset.detail; renderBuy(); }
+  else if (t.dataset.detailClose !== undefined) { BUY.sel = null; renderBuy(); }
+  else if (t.dataset.modalBack !== undefined) {   // 모달 바깥(어두운 배경)을 직접 눌러도 닫힘
+    if (e.target === t) { BUY.sel = null; renderBuy(); }
+  }
   else if (t.dataset.buy) {
     BUY.hint[t.dataset.buy] = "결제·받기는 과금 방식 결정 뒤 열림";
     renderBuy();
@@ -586,7 +664,10 @@ $("#main").addEventListener("click", e => {
   } else {
     const u = SELL.upload, act = t.dataset.act;
     if (act === "upload") startUpload();
-    else if (act === "cancel" || act === "close") { if (u && u.rowId) SELL.sel = u.rowId; SELL.upload = null; renderSell(); }
+    else if (act === "cancel" || act === "close") {   // 닫으면 업로드 탭의 "내 모델 관리"로
+      if (u && u.rowId) SELL.sel = u.rowId;
+      SELL.upload = null; renderSell();
+    }
     else if (act === "next") { u.step++; renderSell(); }
     else if (act === "prev") { u.step--; renderSell(); }
     else if (act === "verify") runVerify();
@@ -609,22 +690,55 @@ document.addEventListener("change", e => {
   if (e.target.id === "u-type" && SELL.upload) SELL.upload.type = e.target.value;
 });
 
-/* ═══════════ 탭 ═══════════ */
-let TAB = new URLSearchParams(location.search).get("tab") === "sell" ? "sell" : "buy";
-function render() {
-  document.querySelectorAll("#tabs .tab").forEach(b => b.classList.toggle("on", b.dataset.tab === TAB));
-  TAB === "buy" ? renderBuy() : renderSell();
-}
-$("#tabs").addEventListener("click", e => {
-  const b = e.target.closest(".tab");
-  if (!b) return;
-  TAB = b.dataset.tab;
+/* ═══════════ 탭 — 마켓은 구분자 제목(2026-09-16 사용자 지정): 분석 = 모델 목록 / 업로드 = 올리기·내 모델 관리 ═══════════ */
+let TAB = new URLSearchParams(location.search).get("tab") === "upload" ? "upload" : "analysis";
+
+function syncUrl() {
   const url = new URL(location.href);
-  TAB === "sell" ? url.searchParams.set("tab", "sell") : url.searchParams.delete("tab");
+  TAB === "analysis" ? url.searchParams.delete("tab") : url.searchParams.set("tab", TAB);
   history.replaceState(null, "", url);
+}
+
+function render() {
+  /* 탭 표시는 사이드바 하위 메뉴(마켓 밑 분석·업로드)가 담당 */
+  document.querySelectorAll("[data-mtab]").forEach(a => a.classList.toggle("on", a.dataset.mtab === TAB));
+  if (TAB === "analysis") renderBuy();
+  else if (!SELL.upload) startUpload();   // 업로드 탭 — 진행 중인 흐름이 없으면 새로 시작
+  else renderSell();
+}
+
+document.querySelector(".side").addEventListener("click", e => {
+  const a = e.target.closest("[data-mtab]");
+  if (!a) return;
+  e.preventDefault();          // 같은 화면 안 전환 — 새로 안 불러온다
+  TAB = a.dataset.mtab;
+  syncUrl();
   render();
 });
 render();
+</script>
+<script>
+/* 사이드바 그룹 접기(2026-09-15 사용자 지정) — 제목 클릭으로 여닫고 선택은 기억. 홀로 항목(solo)은 접히지 않음 */
+(function () {
+  let closed = [];
+  try { closed = JSON.parse(localStorage.getItem("odin-nav-closed") || "[]"); } catch (e) {}
+  const apply = (g, on) => {
+    g.classList.toggle("closed", on);
+    for (let el = g.nextElementSibling; el && el.classList.contains("nav") && !el.classList.contains("solo"); el = el.nextElementSibling)
+      el.classList.toggle("hid", on);
+  };
+  document.querySelectorAll(".nav-group").forEach(g => {
+    const name = g.textContent.trim();
+    apply(g, closed.includes(name));
+    g.addEventListener("click", () => {
+      const on = !g.classList.contains("closed");
+      apply(g, on);
+      const i = closed.indexOf(name);
+      if (on && i < 0) closed.push(name); else if (!on && i >= 0) closed.splice(i, 1);
+      try { localStorage.setItem("odin-nav-closed", JSON.stringify(closed)); } catch (e) {}
+    });
+  });
+})();
 </script>
 <script>
 /* 앱 껍데기(index.html) 안에서 열렸으면 지금 위치·제목을 알린다 — 새로고침해도 이 화면·탭으로 돌아오게 */

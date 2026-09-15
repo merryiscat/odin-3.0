@@ -31,6 +31,7 @@
   /* 데이터색 (한국 관례) */
   --up: #F04452; --down: #3182F6; --flat: #8B95A1; --hot: #E8590C;
   --live: #17A05D; --seg: #E9EBEE;
+  --emg: #173FA6;   /* 긴급(주간) — 하락 파랑보다 진하게 */
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body { height: 100%; }
@@ -43,6 +44,12 @@ body { font-family: 'SUIT Variable', SUIT, 'Malgun Gothic', sans-serif;
        display: flex; align-items: center; padding: 0 20px; gap: 24px; flex: none; }
 .logo { font-size: 14px; font-weight: 800; letter-spacing: .35em; }
 .clock { font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 12px; color: var(--chrome-muted); }
+/* 판정 모델 선택 — 카드들 위의 드랍박스(2026-09-16 검수: 제목 대신 마켓-리스트의 모델을 고름).
+   고른 한 모델이 화면 전체(코스피·코스닥 × 실시간·주간)를 담당한다 */
+.mtitle { margin-bottom: 12px; }
+.mtitle select { font-family: inherit; font-size: 14px; font-weight: 800; color: var(--ink);
+                 background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+                 padding: 7px 10px; cursor: pointer; }
 .clock .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
               background: var(--live); margin-right: 8px; }
 .tabs { margin-left: 12px; display: flex; gap: 4px; }
@@ -57,20 +64,26 @@ body { font-family: 'SUIT Variable', SUIT, 'Malgun Gothic', sans-serif;
 .tab { background: none; border: 0; padding: 6px 12px; cursor: pointer; font-family: inherit;
        font-size: 12px; font-weight: 500; color: var(--chrome-muted); border-radius: 4px; }
 .tab.on { background: var(--chrome-2); color: var(--chrome-ink); font-weight: 700; }
+/* 개정 번호는 화면에 안 보이게 body[data-rev]로만(2026-09-16 검수 "빼") — 검수 어긋남 확인용 */
 
 /* ── 아래: 사이드바 + 본문 ── */
 .wrap { flex: 1; display: flex; min-height: 0; }
 .side { width: 192px; flex: none; background: var(--chrome); padding: 16px 0; overflow-y: auto; }
-.nav-group { font-size: 10px; font-weight: 500; letter-spacing: .16em; color: var(--chrome-muted);
-             padding: 14px 20px 6px; text-transform: uppercase; }
-.nav { display: block; font-size: 13px; padding: 7px 20px; color: var(--chrome-muted);
+/* 사이드바 위계 통일(2026-09-16 사용자 지정): 제목 = 파이프라인·마켓·연구소·계좌·리서치(14px 굵게),
+   소제목 = 그 아래 항목 전부(12px, 34px 들여쓰기). 접기 화살표는 묶음 제목(링크 아닌 것)에만. */
+.nav-group { font-size: 14px; font-weight: 700; color: var(--chrome-muted);
+             padding: 7px 20px; margin-top: 14px; cursor: pointer; }
+.nav-group:first-child { margin-top: 0; }
+.nav-group::after { content: "▾"; float: right; font-size: 10px; margin-top: 3px; }   /* 접기 표시(순수 기호) */
+.nav-group.closed::after { content: "▸"; }
+.nav.hid { display: none; }
+.nav { display: block; font-size: 12px; padding: 7px 20px 7px 34px; color: var(--chrome-muted);
        font-weight: 400; text-decoration: none; cursor: default; border-left: 2px solid transparent; }
 .nav.on { color: var(--chrome-ink); font-weight: 700; background: var(--chrome-2);
           border-left-color: var(--accent); }
-/* 묶음 없이 홀로 서는 항목(마켓·계좌) — 앞 묶음과 간격만 띄운다.
-   (클래스명 top은 상단바 .top과 겹쳐 줄이 48px로 부풀었음 → solo로 변경, 2026-09-15) */
-.nav.solo { margin-top: 14px; }
-a.nav[href$=".html"] { cursor: pointer; }   /* 실제 화면이 있는 메뉴만 손가락 커서 */
+/* 제목이면서 링크인 항목(마켓·계좌) — 묶음 제목과 같은 크기 (클래스명 top은 상단바 .top과 겹침 주의) */
+.nav.solo { margin-top: 14px; font-size: 14px; font-weight: 700; padding-left: 20px; }
+a.nav[href*=".html"] { cursor: pointer; }   /* 실제 화면이 있는 메뉴만 손가락 커서(?tab=… 하위 메뉴 포함) */
 
 .main { flex: 1; min-width: 0; overflow-y: auto; padding: 16px; }
 .note { font-size: 11px; color: var(--chrome-muted); }
@@ -87,9 +100,9 @@ a.nav[href$=".html"] { cursor: pointer; }   /* 실제 화면이 있는 메뉴만
 .c-up { color: var(--up); } .c-down { color: var(--down); } .c-flat { color: var(--flat); }
 .p-body { padding: 14px; }
 
-/* 섹션 라벨(패널 안 작은 제목) */
+/* 섹션 라벨(패널 안 작은 제목). 판정 모델 이름은 칸마다 달지 않고 상단바 "기본 모델" 하나로(2026-09-16 검수) */
 .sec { font-size: 10.5px; font-weight: 600; letter-spacing: .1em; color: var(--muted);
-       text-transform: uppercase; margin: 14px 0 6px; }
+       text-transform: uppercase; margin: 14px 0 6px; display: flex; align-items: baseline; }
 .sec:first-child { margin-top: 0; }
 
 /* 상태 워드 — 밀도 높은 문법에 맞게 32px */
@@ -117,6 +130,20 @@ a.nav[href$=".html"] { cursor: pointer; }   /* 실제 화면이 있는 메뉴만
 .pending { font-size: 12px; color: var(--muted); }
 .empty { padding: 28px 14px; font-size: 13px; color: var(--muted); }
 
+/* 실시간/주간 구분(2026-09-15 사용자 피드백): 두 칸 모두 소제목 + 판정 재료 칩, 주간 앞에 헤어라인 */
+.chip { display: inline-flex; align-items: center; gap: 5px; margin-left: 8px; vertical-align: middle;
+        font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 10px; font-weight: 600;
+        letter-spacing: .06em; text-transform: none; }
+.chip.live { color: var(--live); }
+.chip.live i { width: 6px; height: 6px; border-radius: 50%; background: var(--live); }
+.chip.flat { color: var(--muted); font-weight: 500; }
+.sec.split { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 16px; }
+
+/* 최근 20거래일 상태 띠(좌 = 과거, 우 = 최근) — 실시간·주간 각각(2026-09-15 사용자 피드백) */
+.strip { display: flex; gap: 2px; margin-top: 12px; }
+.strip i { flex: 1 1 0; height: 5px; border-radius: 1px; background: var(--seg); }
+.strip-nm { font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 10px; color: var(--muted); margin-top: 4px; }
+
 /* 주간 — 이름표 하나 + 근거 한 줄 (2026-09-15, 초안 규칙. 10거래일 띠는 실시간 쪽 검수 결과에 맞춰 두지 않음)
    색: 상승장 빨강 / 하락장 파랑 / 박스권 회색 / 변동장 먹색(방향 없음) / 긴급 = 파랑 바탕 반전 */
 .word.ink { color: var(--ink); }
@@ -126,7 +153,7 @@ a.nav[href$=".html"] { cursor: pointer; }   /* 실제 화면이 있는 메뉴만
 .w-draft { font-size: 10.5px; color: var(--muted); margin-left: 8px; font-weight: 500; letter-spacing: 0; text-transform: none; }
 </style>
 </head>
-<body>
+<body data-rev="r6">
 
 <!-- 상단바 (다크 크롬) -->
 <header class="top">
@@ -148,8 +175,11 @@ a.nav[href$=".html"] { cursor: pointer; }   /* 실제 화면이 있는 메뉴만
     <a class="nav on" href="market-temp.html">시장 온도</a>
     <a class="nav" href="#">매매리스트</a>
     <a class="nav" href="#">매매모델</a>
-    <a class="nav solo" href="market.html">마켓</a>
+    <div class="nav-group">마켓</div>
+    <a class="nav" href="market.html">리스트</a>
+    <a class="nav" href="market.html?tab=upload">업로드</a>
     <div class="nav-group">연구소</div>
+    <a class="nav" href="#">피쳐셋 분석</a>
     <a class="nav" href="#">모델</a>
     <a class="nav" href="#">실험</a>
     <a class="nav solo" href="#">계좌</a>
@@ -160,6 +190,7 @@ a.nav[href$=".html"] { cursor: pointer; }   /* 실제 화면이 있는 메뉴만
   </aside>
 
   <main class="main">
+    <div class="mtitle"><select id="model-pick" aria-label="판정 모델 선택"></select></div>
     <div class="grid" id="stacks"></div>
   </main>
 </div>
@@ -189,7 +220,15 @@ const WEEK = {
   volatile:  { nm: "변동장", fam: "ink"  },
   box:       { nm: "박스권", fam: "flat" },
 };
-const W_MODEL = "rule-temp-w-v0";
+/* 판정 모델 선택지 — 마켓-리스트의 시장 온도 모델과 같은 목록(2026-09-16 사용자 지정).
+   실데이터는 기본 모델뿐 — 다른 걸 고르면 그 모델의 기록이 없어 "판정 없음"이 뜬다(예시 단계). */
+const MODEL_CHOICES = [
+  { nm: "기본 모델", rt: "rule-temp-rt-v1", w: "rule-temp-w-v0" },
+  { nm: "국면 전환 조기 판정", rt: "regime-early-v1", w: null },
+  { nm: "기준선: 내일=오늘", rt: "baseline-carry-v1", w: null },
+];
+let MODEL = MODEL_CHOICES[0].rt;      // 실시간·종가 판정 모델
+let W_MODEL = MODEL_CHOICES[0].w;     // 주간 판정 모델 (없는 모델이면 null)
 
 /* 업종 줄임말 — state_module/rt_rules.py SECTOR_SHORT와 같게 유지(표시 전용).
    원문(sector_l1)엔 '·'가 들어 있어 여러 업종을 이어 붙이면 경계가 안 보인다. 없는 이름은 그대로. */
@@ -241,21 +280,41 @@ function signed(v, digits = 2) {
   return v == null ? "—" : `${v > 0 ? "+" : ""}${Number(v).toFixed(digits)}%`;
 }
 
-/* 주간 칸: 이름표 + 왜 그렇게 판정했나(근거 한 줄) */
-function weekHtml(w) {
+/* 주간 칸: 이름표 하나만(근거 문구는 뺌 — 2026-09-15 검수). 재료 표기는 실시간과 같은 칩 방식 */
+function weekChip(w) {
+  if (!w) return "";
+  return w.basis === "live"
+    ? `<span class="chip live"><i></i>LIVE ${w.asofHm}</span>`
+    : `<span class="chip flat">${w.asof} 종가 기준</span>`;
+}
+
+function weekWord(w) {
   if (w === undefined) return `<div class="pending">설계 중</div>`;               // 목데이터(미국 탭 등)
   if (!w) return `<div class="pending">주간 판정 없음 — 아직 DB에 기록 전</div>`;
   const W = WEEK[w.state] || WEEK.box;
-  const m = w.metrics || {};
-  const why = w.state === "emergency"
-    ? `그날 장중 최저 <b>${signed(m.low_pct_today, 1)}</b> — 서킷브레이커급(−8% 이하)`
-    : `최근 5거래일 <b>${signed(m.chg5, 1)}</b> · 5일 평균 진폭 <b>${m.rng5 == null ? "—" : Number(m.rng5).toFixed(2) + "%"}</b>`
-      + (m.rng_threshold == null ? " (변동장 기준 없음)" : ` / 변동장 기준 ${Number(m.rng_threshold).toFixed(2)}%`);
-  return `<span class="word ${W.fam}">${W.nm}</span><span class="sub">${w.asof} 종가 기준</span>
-    <div class="w-why">${why}</div>`;
+  return `<span class="word ${W.fam}">${W.nm}</span>`;
 }
 
-/* 판정 재료 구분(실시간·끊김·장 마감·종가)은 상단바 한 곳에만 표시 — 카드 머리줄 꼬리표는 뺌(2026-09-14 검수) */
+/* 최근 20거래일 상태 띠 — 좌 = 과거, 우 = 최근. 칸 색 = 상태 색, 올리면 날짜·상태 */
+function stripHtml(cells, vocab, label) {
+  if (!cells || !cells.length) return "";
+  const COL = { up: "--up", down: "--down", flat: "--flat", hot: "--hot", ink: "--ink", emg: "--emg" };
+  const seg = cells.map(c => {
+    const v = vocab[c.state] || { fam: "flat", nm: c.state };
+    return `<i style="background:var(${COL[v.fam] || "--flat"})" title="${c.d.slice(5)} ${v.nm}"></i>`;
+  }).join("");
+  return `<div class="strip">${seg}</div><div class="strip-nm">${label}</div>`;
+}
+
+/* 판정 재료 구분: 상단바 + 카드 안 소제목 칩(실시간/주간 구분 — 2026-09-15 사용자 피드백으로 복원) */
+function rtChip(mk) {
+  if (mk.mode === "live") return `<span class="chip live"><i></i>LIVE ${mk.asofHm}</span>`;
+  if (mk.mode === "stale") return `<span class="chip flat">끊김 — 마지막 ${mk.asofHm}</span>`;
+  if (mk.mode === "closing") return `<span class="chip flat">마지막 ${mk.asofHm} — 종가 판정 전</span>`;
+  if (mk.mode === "eod") return `<span class="chip flat">${mk.asof} 종가 기준</span>`;
+  return "";
+}
+
 function marketCard(mk) {
   const S = STATE[mk.state] || STATE.flat;
   const sectors = mk.sectors && mk.sectors.length
@@ -270,6 +329,7 @@ function marketCard(mk) {
       <span class="p-px">${mk.px}</span><span>${mk.chg == null ? "" : chgHtml(mk.chg, "p-chg")}</span>
     </div>
     <div class="p-body">
+      <div class="sec">실시간${rtChip(mk)}</div>
       <div class="state-row">
         <div>
           <span class="word ${S.fam}">${S.nm}</span><span class="sub">${mk.chg == null ? "" : chgHtml(mk.chg, "")}</span>
@@ -278,8 +338,13 @@ function marketCard(mk) {
         ${sparkHtml(mk.closes, mk.sparkLabel)}
       </div>
       ${breadthHtml(mk.b)}
-      <div class="sec">주간<span class="w-draft">초안 규칙</span></div>
-      ${weekHtml(mk.week)}
+      ${stripHtml(mk.rtStrip, STATE, "최근 20거래일 · 종가 판정")}
+      <div class="sec split">주간${weekChip(mk.week)}</div>
+      <div class="state-row">
+        <div>${weekWord(mk.week)}</div>
+        ${sparkHtml(mk.closes90, "최근 90일 종가")}
+      </div>
+      ${stripHtml(mk.wStrip, WEEK, "최근 20거래일 · 주간 판정")}
     </div>
   </div>`;
 }
@@ -290,7 +355,6 @@ function marketCard(mk) {
      stale   — 정규장인데 오늘 실시간 판정이 5분 넘게 끊김 → 마지막 실시간 판정 + 끊김 표시
      closing — 장 마감 뒤인데 오늘 종가 판정이 아직 없음 → 오늘 마지막 실시간 판정
      eod     — 그 밖 → 최신 종가 판정(basis=eod)                                         */
-const MODEL = "rule-temp-rt-v1";
 const MARKETS = ["KR-KOSPI", "KR-KOSDAQ"];
 const LIVE_FRESH_MIN = 5;
 
@@ -332,15 +396,17 @@ async function loadKR(sel = null) {
   const past = day !== today;
   const now = past ? new Date(`${day}T23:59:00+09:00`) : realNow;
   const dayStart = `${day}T00:00:00+09:00`, dayEnd = `${day}T23:59:59+09:00`;
-  const [st, ix, live, snap, wk] = await Promise.all([
+  const [st, ix, live, snap, wk, wkE] = await Promise.all([
+    /* 실시간 모델의 종가 판정 — 카드(최신 1줄) + 20거래일 상태 띠 재료 */
     sb.from("state_market_temp")
       .select("as_of,market,state_code,state_sectors,breadth_up,breadth_down,breadth_total,metrics")
       .eq("model_id", MODEL).eq("scope", "rt").eq("basis", "eod").lte("as_of", dayEnd)
-      .order("as_of", { ascending: false }).limit(4),
+      .order("as_of", { ascending: false }).limit(60),
+    /* 일봉 — 실시간 스파크 30일 + 주간 스파크 90일 (두 시장 합쳐 260줄) */
     sb.from("raw_index_ohlc")
       .select("date,market,close")
       .in("market", MARKETS).lte("date", day)
-      .order("date", { ascending: false }).limit(70),
+      .order("date", { ascending: false }).limit(260),
     sb.from("state_market_temp")
       .select("as_of,market,state_code,state_sectors,breadth_up,breadth_down,breadth_total,metrics")
       .eq("model_id", MODEL).eq("scope", "rt").eq("basis", "live").gte("as_of", dayStart).lte("as_of", dayEnd)
@@ -349,14 +415,21 @@ async function loadKR(sel = null) {
       .select("ts,market,price,change_pct,source")
       .eq("kind", "index").in("market", MARKETS).gte("ts", dayStart).lte("ts", dayEnd)
       .order("ts", { ascending: false }).limit(20),
-    /* 주간 판정(scope=w) — 보는 날짜까지의 시장별 최신 줄(두 시장이라 4줄이면 충분) */
+    /* 주간 판정(scope=w) — 보는 날짜까지의 시장별 최신 줄. 장중엔 라이브(1분) 줄이 섞이므로 basis도 읽는다.
+       (고른 모델에 주간이 없으면 W_MODEL이 null — 빈 이름으로 조회해 "판정 없음"이 뜨게 둔다) */
     sb.from("state_market_temp")
-      .select("as_of,market,state_code,metrics")
-      .eq("model_id", W_MODEL).eq("scope", "w").lte("as_of", dayEnd)
+      .select("as_of,market,state_code,metrics,basis")
+      .eq("model_id", W_MODEL || "-").eq("scope", "w").lte("as_of", dayEnd)
       .order("as_of", { ascending: false }).limit(4),
+    /* 주간 종가 판정만 따로 — 20거래일 주간 상태 띠 재료(라이브 줄은 하루 수백 개라 띠에 못 씀) */
+    sb.from("state_market_temp")
+      .select("as_of,market,state_code")
+      .eq("model_id", W_MODEL || "-").eq("scope", "w").eq("basis", "eod").lte("as_of", dayEnd)
+      .order("as_of", { ascending: false }).limit(60),
   ]);
   for (const r of [st, ix, live, snap]) if (r.error) throw r.error;
   if (wk.error) console.warn("주간 판정 조회 실패:", wk.error.message);   // 주간이 없어도 실시간 카드는 그린다
+  if (wkE.error) console.warn("주간 띠 조회 실패:", wkE.error.message);
 
   const nowK = kst(now);
   const inSession = !past && nowK.hm >= "09:00" && nowK.hm <= "15:35";
@@ -388,7 +461,15 @@ async function loadKR(sel = null) {
     const wRow = (wk.error ? [] : wk.data).find(r => r.market === m);
     const wDate = wRow && kst(new Date(wRow.as_of)).date;
     card.week = wRow && (!past || wDate === day)
-      ? { state: wRow.state_code, metrics: wRow.metrics, asof: wDate } : null;
+      ? { state: wRow.state_code, metrics: wRow.metrics, asof: wDate,
+          basis: wRow.basis, asofHm: kst(new Date(wRow.as_of)).hm } : null;
+    /* 20거래일 상태 띠(좌 = 과거) — 실시간·주간 각각 종가 판정으로 */
+    card.rtStrip = eodRows.slice(0, 20).reverse()
+      .map(r => ({ d: kst(new Date(r.as_of)).date, state: r.state_code }));
+    card.wStrip = (wkE.error ? [] : wkE.data).filter(r => r.market === m).slice(0, 20).reverse()
+      .map(r => ({ d: kst(new Date(r.as_of)).date, state: r.state_code }));
+    /* 주간 스파크는 더 긴 창(90일 종가)으로 실시간(30일)과 구분 */
+    card.closes90 = idxAll.slice(0, 90).map(r => Number(r.close)).reverse();
     if (mode === "eod") {
       /* 판정 날짜의 일봉에 맞춘다(밤 복사가 판정보다 먼저 들어온 날에도 숫자가 어긋나지 않게) */
       const idx = idxAll.slice(Math.max(idxAll.findIndex(r => r.date <= rowDate), 0));
@@ -506,6 +587,18 @@ document.getElementById("d-next").onclick = () => {
 document.getElementById("d-today").onclick = () => selectDay(null);
 document.getElementById("d-input").onchange = e => selectDay(e.target.value || null);
 
+/* 판정 모델 드랍박스 — 고르면 그 모델의 판정으로 다시 읽는다 */
+const modelPick = document.getElementById("model-pick");
+modelPick.innerHTML = MODEL_CHOICES.map((c, i) => `<option value="${i}">${c.nm}</option>`).join("");
+modelPick.onchange = () => {
+  const c = MODEL_CHOICES[modelPick.value];
+  MODEL = c.rt;
+  W_MODEL = c.w;
+  KR = null;                                        // 이전 모델 데이터가 섞여 보이지 않게
+  render(TAB);
+  refresh();
+};
+
 const params = new URLSearchParams(location.search);
 const first = params.get("market") === "us" ? "us" : "kr";
 if (/^\d{4}-\d{2}-\d{2}$/.test(params.get("date") || "") && params.get("date") < todayKst()) SELECTED = params.get("date");
@@ -531,6 +624,29 @@ setTimeout(function tick() {
   if (!SELECTED) refresh();
   setTimeout(tick, 60000);
 }, ((100 - new Date().getSeconds()) % 60 || 60) * 1000);
+</script>
+<script>
+/* 사이드바 그룹 접기(2026-09-15 사용자 지정) — 제목 클릭으로 여닫고 선택은 기억. 홀로 항목(solo)은 접히지 않음 */
+(function () {
+  let closed = [];
+  try { closed = JSON.parse(localStorage.getItem("odin-nav-closed") || "[]"); } catch (e) {}
+  const apply = (g, on) => {
+    g.classList.toggle("closed", on);
+    for (let el = g.nextElementSibling; el && el.classList.contains("nav") && !el.classList.contains("solo"); el = el.nextElementSibling)
+      el.classList.toggle("hid", on);
+  };
+  document.querySelectorAll(".nav-group").forEach(g => {
+    const name = g.textContent.trim();
+    apply(g, closed.includes(name));
+    g.addEventListener("click", () => {
+      const on = !g.classList.contains("closed");
+      apply(g, on);
+      const i = closed.indexOf(name);
+      if (on && i < 0) closed.push(name); else if (!on && i >= 0) closed.splice(i, 1);
+      try { localStorage.setItem("odin-nav-closed", JSON.stringify(closed)); } catch (e) {}
+    });
+  });
+})();
 </script>
 <script>
 /* 앱 껍데기(index.html) 안에서 열렸으면 지금 위치·제목을 알린다 — 새로고침해도 이 화면·날짜로 돌아오게 */
