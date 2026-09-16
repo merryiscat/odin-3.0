@@ -1,0 +1,12 @@
+[project]
+name = "odin-list-module"
+version = "0.1.0"
+description = "오딘 3.0 리스트 모듈 — 그날 볼 종목 뽑기(종목 파라미터 계산 + 리스트 모델 rule-pick-v1)"
+requires-python = ">=3.11"
+dependencies = [
+    "httpx>=0.27",        # Supabase REST
+    "python-dotenv>=1.0", # 프로젝트 루트 .env 로딩
+]
+
+[dependency-groups]
+dev = ["pytest>=8"]
