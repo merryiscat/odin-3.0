@@ -8,11 +8,16 @@
 --     ('rule-temp-rt-v1',    'state_pred', '규칙 기반 실시간 시장 온도', 'v1', 'dev')
 --     ('baseline-random-v1', 'state_pred', '기준선: 무작위 판정',        'v1', 'dev')
 --     ('baseline-carry-v1',  'state_pred', '기준선: 내일=오늘',          'v1', 'dev')
+--   매매 리스트 모델(kind=pick, 2026-09-17 추가 — 등록 완료):
+--     ('rule-pick-v1',            'pick', '규칙 렌즈 합집합 매매 리스트', 'v1', 'dev')
+--     ('baseline-random-pick-v1', 'pick', '기준선: 무작위 선정',          'v1', 'dev')
+--     ('baseline-topcap-pick-v1', 'pick', '기준선: 시총 상위',            'v1', 'dev')
+--     ('baseline-carry-pick-v1',  'pick', '기준선: 어제 리스트 그대로',    'v1', 'dev')
 -- ============================================================================
 
 create table if not exists dim_model (
     model_id      text primary key,                 -- 모델 고유 이름 (예: rule-temp-rt-v1)
-    kind          text not null,                    -- state_pred(예측모델) / trade(매매모델)
+    kind          text not null,                    -- state_pred(예측모델) / pick(매매 리스트 모델) / trade(매매모델)
     name          text not null,                    -- 사람용 이름
     version       text not null,                    -- 버전 (model_id에도 있지만 조회 편의로 중복 저장)
     status        text not null default 'dev',      -- dev(개발) / live(가동) / retired(퇴역)

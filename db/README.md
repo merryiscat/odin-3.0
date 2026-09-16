@@ -24,6 +24,13 @@ Supabase(새 3.0 프로젝트, 빈 통)에 만들 **표 정의 SQL**을 둔다.
 - `state_market_temp` — 판정 output. 사다리(대공황~과열)+꼬리표, model_id로 예측모델 구분, 매분 append.
 - `dim_model` — 마트 모델 명부. 예측·매매·기준선(무작위, 내일=오늘) 모두 등록.
 
+## 매매 리스트 표 (2026-09-17 설계 — 상세는 `list_module/README.md` 예정, 계획은 브레인 §9)
+- `raw_stock_ohlc` — **전 종목 일봉**(생성 완료 2026-09-17). 당일은 15:40 KIS 묶음 스냅샷(kis), 과거는 공공데이터
+  백필(krx). trade_value는 **원**(지수 표는 백만원). 상한가 값(upper_limit)이 있어 상한가 마감을 정확히 판정.
+- 예정: `raw_rank_snapshot`(순위 조회 축적 — 거래량·등락률·외인/기관 순매수, 10분+15:35) ·
+  `stock_params`(공용 종목 파라미터, bg_daily/intraday) · `pick_list`(리스트 모델 output, list_date·phase·reasons·warn) ·
+  `dim_model.kind`에 `pick` 추가.
+
 ### 예정 표
 - **테마**(뉴스 단계에서): `dim_theme`(테마 목록) + `raw_stock_theme`(종목↔테마·출처·시점·점수).
   themes를 dim_stock 칸으로 두지 않기로 결정(2026-08-31) — 계속 수집·변하는 데이터라 별도 표.
