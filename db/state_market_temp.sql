@@ -68,7 +68,7 @@ create index if not exists idx_smt_lookup on state_market_temp (market, model_id
 
 -- ── 표/칸 설명(문서화) ──────────────────────────────────────────────────
 comment on table  state_market_temp is '시장 온도 판정 output(예측모델별, model_id로 구분). 상태는 단일값(우선순위로 하나만). append만·매분 저장(이력 보존).';
-comment on column state_market_temp.state_code    is '실시간(rt): crash/theme_up/up/down/flat. 주간(w): 매매로직 결정용 이름표 하나(어휘 설계 중 — uptrend/box/volatile/downtrend/emergency 후보). 모델은 이 코드로 매칭.';
+comment on column state_market_temp.state_code    is '실시간(rt, 8개 확정 2026-09-14): crash/surge/theme_up/selloff/fire/up/down/flat. 주간(w, 초안 rule-temp-w-v0): emergency/downtrend/uptrend/volatile/box. 모델은 이 코드로 매칭.';
 comment on column state_market_temp.state_sectors is 'theme_up일 때 역행 상승한 업종(sector_l1) 목록 — 상승률 순 jsonb 배열. 그 외 NULL.';
 comment on column state_market_temp.horizon      is 'now=현재 상태(기본 모델). 미래 예측모델은 d1·w1 등 — 같은 표에서 병행·채점하기 위한 칸.';
 comment on column state_market_temp.label_kr     is '사람용 문구(GUI 표시). 문구는 언제든 다듬을 수 있으니 기계 매칭 금지 — 코드로만.';

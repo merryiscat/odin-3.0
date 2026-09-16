@@ -5,10 +5,12 @@
 --              ② 새 예측모델이 과거 파라미터 기록으로 바로 개발·검증 가능.
 --   scope 두 종류:
 --     · bg_daily  — 배경. 아침 1회, 어제까지의 일봉으로 계산(장중엔 안 변하는 고정값).
---                   예: 20일 이동평균 대비 위치(ma_gap), 평균선 기울기(ma_slope), 5일 누적 등락률.
+--                   실제 키(params-v1): as_of_date, prev_close, ma20, ma_gap_pct, ma_slope_pct, chg5_pct,
+--                       money_avg20, surge_threshold(대금 폭증 경계), surge_hist_n.
 --     · intraday  — 장중. 1분마다 raw_market_snapshot에서 계산.
---                   예: 당일 등락률(day_change_pct), 당일 진폭(day_range_pct),
---                       바스켓 상승/하락 개수(breadth_up/down/total), 역행 업종(counter_sectors).
+--                   실제 키(params-v1): index_price, index_chg(당일 등락률), acc_amount, money_ratio,
+--                       money_hist_days, surge_threshold, breadth_n/up/down/u05/d05, sector_chg(업종별 대장주 등락률).
+--                   (키 사전의 정본은 state_module/SPEC_market_state_v1.md — 2026-09-17 실제 값에 맞춰 정정)
 --   params를 jsonb(이름 붙은 값 묶음)로 두는 이유: 파라미터 목록이 아직 진화 중
 --   (분봉 이력이 쌓이면 "30분 낙폭" 같은 속도 지표 추가 예정) — 칼럼 고정은 v2에서.
 --   규칙: append(추가)만 — 덮어쓰기 금지. 계산식이 바뀌면 calc_ver를 올린다.
