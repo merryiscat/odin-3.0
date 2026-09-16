@@ -118,16 +118,12 @@ label.chk input { accent-color: var(--ink); }
 .empty { padding: 28px 14px; font-size: 13px; color: var(--muted); }
 
 /* ═════ 판매 ═════ */
-.kpis { display: grid; grid-template-columns: repeat(5, 1fr); margin-bottom: 12px; }   /* 상태 4개 + 구매 수 — 아래 상태 필터와 같은 차례 */
+.kpis { display: grid; grid-template-columns: repeat(5, 1fr); margin-bottom: 12px; }   /* 상태 4개 + 구매 수 */
 .kpis div { padding: 10px 14px; border-right: 1px solid var(--line); font-size: 11px; color: var(--muted); }
 .kpis div:last-child { border-right: 0; }
 .kpis b { display: block; font-size: 20px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
-.sell { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; align-items: start; }
+.sell { display: grid; gap: 12px; align-items: start; }   /* 검증 리포트 칸 제거(2026-09-17 검수) — 내 모델 표만 한 폭으로 */
 .sell > * { min-width: 0; }
-.sell.upload { grid-template-columns: 240px 1fr; }
-.seg { display: flex; gap: 4px; }
-.seg button { border: 1px solid var(--line); background: var(--panel); border-radius: 4px; padding: 3px 9px; font-size: 11px; cursor: pointer; color: var(--muted); }
-.seg button.on { border-color: var(--ink); color: var(--ink); font-weight: 700; }
 .tbl-wrap { overflow-x: auto; }
 .tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
 .tbl th { font-size: 11px; font-weight: 600; color: var(--muted); text-align: right; padding: 8px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
@@ -146,23 +142,36 @@ label.chk input { accent-color: var(--ink); }
 .row-btns { display: flex; justify-content: space-between; gap: 8px; margin-top: 14px; }
 
 /* 올리기 */
-.mini { list-style: none; }
-.mini li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 9px 14px;
-           border-top: 1px solid var(--line); font-size: 12.5px; }
-.mini li:first-child { border-top: 0; }
-.mini li.new { background: var(--seg); font-weight: 700; }
 .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 14px; }
 .steps div { font-size: 11.5px; padding: 7px 8px; border-radius: 4px; background: var(--canvas); color: var(--muted); text-align: center; }
 .steps div.done { color: var(--ink); }
 .steps div.on { background: var(--ink); color: #fff; font-weight: 700; }
-.ways { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.way { border: 1px solid var(--line); border-radius: 4px; padding: 12px; cursor: pointer; }
-.way.on { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.ways { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; align-items: start; }   /* 스키마 정의서 쪽을 넓게(2026-09-17 검수) */
+.way { border: 1px solid var(--line); border-radius: 4px; padding: 12px; }
 .way h4 { font-size: 13px; font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
-.queue li { list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 12.5px; }
-.queue li:first-child { border-top: 0; }
-.queue li.pick { font-weight: 700; }
-.drop { border: 1px dashed var(--muted); border-radius: 4px; padding: 20px 10px; text-align: center; font-size: 12px; color: var(--muted); margin-top: 8px; }
+/* 만들 부품은 1단계 맨 위에서 한 번만 고른다(2026-09-17 검수) — 규격·프롬프트·올릴 모듈이 모두 이걸 따른다 */
+.kindrow { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.kindrow select { width: auto; }
+/* 스키마 정의서 — 보내는 값 이름·예시 값·설명 세 칸(2026-09-17 검수) */
+.schema-wrap { border: 1px solid var(--line); border-radius: 4px; max-height: 380px; overflow: auto; }   /* 설명을 풀어 쓰면서 줄이 높아져 조금 키움(2026-09-17) */
+.schema { width: 100%; border-collapse: collapse; font-size: 11px; line-height: 1.5; }
+.schema th { position: sticky; top: 0; background: var(--panel); text-align: left; font-size: 10.5px; font-weight: 600;
+             color: var(--muted); padding: 6px 9px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.schema td { text-align: left; padding: 6px 9px; border-top: 1px solid var(--line); vertical-align: top; overflow-wrap: anywhere; }
+.schema td:nth-child(-n+2) { font-family: 'IBM Plex Mono', Consolas, monospace; }
+.schema td:nth-child(3) { color: var(--muted); }
+.schema tr.grp td { background: var(--canvas); font-weight: 700; color: var(--ink); font-size: 10.5px; }
+.drop { display: block; border: 1px dashed var(--muted); border-radius: 4px; padding: 18px 10px; text-align: center; font-size: 12px; color: var(--muted); margin-top: 8px; cursor: pointer; }
+.drop b { display: block; font-size: 12.5px; font-weight: 700; color: var(--ink); margin-bottom: 3px; }
+.drop.has { border-style: solid; border-color: var(--ink); }
+.drop.over { border-color: var(--accent); background: var(--canvas); }
+/* LLM에게 줄 규격·프롬프트(2026-09-17 검수) — 그대로 복사해 쓰는 칸이라 고정폭 글꼴 */
+.codebox { font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 11px; line-height: 1.55;
+           background: var(--canvas); border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px;
+           max-height: 132px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+textarea.codebox { width: 100%; height: 132px; max-height: none; resize: vertical; color: var(--ink); }
+.sec.pickrow { display: flex; align-items: center; gap: 8px; }
+.sec.pickrow select { width: auto; text-transform: none; letter-spacing: 0; }
 .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .two > * { min-width: 0; }
 .fld { margin-bottom: 10px; }
@@ -173,20 +182,19 @@ label.chk input { accent-color: var(--ink); }
 .preview-cap { font-size: 10.5px; color: var(--muted); margin-top: 6px; }
 .blank b { color: var(--flat); }
 
-/* 모델 상세 — 목록 아래가 아니라 새 창(모달)으로(2026-09-16 검수) */
+/* 새 창(모달) — 모델 상세, 새 모델 올리기(2026-09-16·17 검수) */
 .modal-back { position: fixed; inset: 0; background: rgba(23, 24, 28, .45); z-index: 50;
               display: flex; align-items: center; justify-content: center; padding: 24px; }
 .modal { width: min(940px, 100%); max-height: 86vh; overflow-y: auto;
          box-shadow: 0 12px 40px rgba(0, 0, 0, .25); }
 
 @media (max-width: 1080px) {
-  .sell, .sell.upload { grid-template-columns: 1fr; }
   .ways, .two { grid-template-columns: 1fr; }
   .kpis { grid-template-columns: repeat(2, 1fr); }
 }
 </style>
 </head>
-<body data-rev="r11">
+<body data-rev="r24">
 
 <header class="top">
   <span class="logo">ODIN</span>
@@ -246,15 +254,11 @@ const MODELS = [
 ];
 
 let MY = [
-  { id: "s1", name: "눌림목 반등 매매", type: "trade", ver: 3, status: "sale", vs: 11.4, buys: 31, via: "MCP · Claude", at: "2026-09-02 10:12", checks: { spec: 1, key: 1, net: 1, order: 1, future: 1 }, bt: "통과" },
-  { id: "s2", name: "눌림목 반등 매매", type: "trade", ver: 4, status: "reject", vs: null, buys: null, via: "MCP · Claude", at: "2026-09-15 14:18", checks: { spec: 1, key: 1, net: 1, order: 1, future: 0 }, bt: "중단됨", fail: "signal.py:48 — 당일 종가를 장중 판단에 사용" },
-  { id: "s3", name: "업종 순환 선별", type: "pick", ver: 1, status: "verify", vs: null, buys: null, via: "코드 파일", at: "2026-09-15 09:40", checks: { spec: 1, key: 1, net: 1, order: 1, future: null }, bt: "진행 중" },
-  { id: "s4", name: "국면 보조 판정", type: "state", ver: 1, status: "passed", vs: 4.2, buys: null, via: "MCP · Claude", at: "2026-09-12 21:05", checks: { spec: 1, key: 1, net: 1, order: 1, future: 1 }, bt: "통과" },
-  { id: "s5", name: "변동성 역가중 매매", type: "trade", ver: 2, status: "sale", vs: 1.9, buys: 11, via: "코드 파일", at: "2026-08-28 16:30", checks: { spec: 1, key: 1, net: 1, order: 1, future: 1 }, bt: "통과" },
-];
-const MCP_QUEUE = [
-  { id: "q1", name: "대장주 추세 추종", type: "trade", at: "14:18", memo: "백테스트 3회 후 요청" },
-  { id: "q2", name: "테마 역행 선별", type: "pick", at: "어제 21:40", memo: "백테스트 1회 후 요청" },
+  { id: "s1", name: "눌림목 반등 매매", type: "trade", ver: 3, status: "sale", k: [18.2, -9.1], buys: 31, via: "MCP · Claude", at: "2026-09-02 10:12", checks: { spec: 1, key: 1, net: 1, order: 1, future: 1 }, bt: "통과" },
+  { id: "s2", name: "눌림목 반등 매매", type: "trade", ver: 4, status: "reject", k: null, buys: null, via: "MCP · Claude", at: "2026-09-15 14:18", checks: { spec: 1, key: 1, net: 1, order: 1, future: 0 }, bt: "중단됨", fail: "signal.py:48 — 당일 종가를 장중 판단에 사용" },
+  { id: "s3", name: "업종 순환 선별", type: "pick", ver: 1, status: "verify", k: null, buys: null, via: "코드 파일", at: "2026-09-15 09:40", checks: { spec: 1, key: 1, net: 1, order: 1, future: null }, bt: "진행 중" },
+  { id: "s4", name: "국면 보조 판정", type: "state", ver: 1, status: "passed", k: [59, 498], buys: null, via: "MCP · Claude", at: "2026-09-12 21:05", checks: { spec: 1, key: 1, net: 1, order: 1, future: 1 }, bt: "통과" },
+  { id: "s5", name: "변동성 역가중 매매", type: "trade", ver: 2, status: "sale", k: [5.2, -6.0], buys: 11, via: "코드 파일", at: "2026-08-28 16:30", checks: { spec: 1, key: 1, net: 1, order: 1, future: 1 }, bt: "통과" },
 ];
 const STATUS = {
   sale:   ["판매 중", "on"],
@@ -330,61 +334,127 @@ function listHtml(list) {
 /* ── 모델 상세 — 입력(무엇을 읽나)·출력(무엇을 내보내나)을 정규화된 표로(2026-09-16 사용자 지정).
    내용은 종류별 표준 계약(모든 모델이 같은 표 규격을 읽고 씀 — 브레인 §3 "DB로만 대화") ── */
 const IO_SPEC = {
-  /* 시장 온도: 실제 판별기 코드(state_module)가 DB에서 읽고 쓰는 칼럼 그대로 —
-     LLM이 모델을 만들 때 이 표만 보고 입출력을 알 수 있어야 한다(2026-09-16 사용자 지정) */
+  /* 한 줄 = [이름, 설명, 주기 또는 값 범위, 실제 값 예시].
+     · 이름·예시는 기계가 맞춰야 하는 값 — 칸 이름은 db/*.sql 정본, 예시는 state_module/SPEC_market_state_v1.md의
+       실제 적재분(2026-09-15~16 코스피)에서 가져온다. 지어낸 값을 쓰지 말 것(2026-09-17 검수에서 잡혔다).
+     · 설명은 사람이 읽는 칸 — 주식을 모르는 사람 기준으로 풀어 쓴다(2026-09-17 사용자 지정).
+       지수·등락률·시가총액 같은 말은 그대로 쓰지 말고 한 번 풀어서 적는다. */
   state: {
     in: [
-      ["raw_market_snapshot.price · change_pct (kind=index)", "지수 현재가 · 전일 대비 등락률(%)", "1분마다"],
-      ["raw_market_snapshot.acc_amount (kind=index)", "지수 누적 거래대금(백만원) — 장중 대금 배율의 분자", "1분마다"],
-      ["raw_market_snapshot.price · change_pct (kind=stock)", "업종 대장주 개별 등락률 — 폭(몇 개가 ±0.5% 넘게 움직였나)·역행 업종 재료", "1분마다"],
-      ["dim_basket.stock_code · sector_l1 (basket_type=leader)", "대장주 명부 — 시장별 업종 1위 21개(거래정지 제외)", "아침 1회"],
-      ["raw_index_ohlc.close", "지수 종가 — 전일·5거래일 전 종가, 20일 이평 배경", "하루 1회"],
-      ["raw_index_ohlc.high · low", "하루 진폭 — 5일 평균 진폭·직전 1년 분포(변동장 기준)", "하루 1회"],
-      ["raw_index_ohlc.trade_value", "하루 거래대금 — 직전 20일 평균 대비 배율·1년 상위 10% 기준(불장·투매)", "하루 1회"],
-      ["state_params.params (scope=bg_daily·intraday)", "공용 계산값 — 대금 폭증 기준(surge_threshold)·과거 같은 시각 누적 대금(장중 배율 분모)", "하루 1회 · 1분마다"],
+      ["raw_market_snapshot.ts · market · kind · code · source",
+       "이 숫자가 언제·어디서 온 것인지 알려 주는 꼬리표. 몇 시 몇 분에 받았는지, 어느 시장인지(코스피·코스닥), 시장 전체를 나타내는 숫자인지 회사 한 곳의 숫자인지, 그 대상의 번호는 무엇인지, 어디서 받아왔는지가 함께 온다. 같은 분에 두 곳에서 온 값이 있으면 증권사에서 직접 받은 쪽을 먼저 쓴다",
+       "시세 줄마다", "2026-09-16T09:47:00+09:00 · KR-KOSPI · index · 0001(코스피)·1001(코스닥) · kis"],
+      ["raw_market_snapshot.price · change_pct (kind=index)",
+       "시장 전체의 온도계 역할을 하는 대표 숫자와, 그 숫자가 어제 끝났을 때보다 몇 퍼센트 오르내렸는지. 대표 숫자는 그 시장에 속한 회사들의 주가를 한데 모아 만든 것이라, 오르면 대체로 그날 시장 분위기가 좋았다는 뜻이다",
+       "1분마다 · 시장마다 1줄", "6675.77 · 0.73"],
+      ["raw_market_snapshot.acc_amount (kind=index)",
+       "오늘 장이 열린 뒤 지금까지 그 시장에서 오간 돈의 총액. 백만원을 1로 센 숫자다. 평소 같은 시각보다 돈이 유난히 많이 몰렸는지 보는 데 쓴다. 옛 자료를 옮겨 담은 줄에는 이 값이 없다",
+       "1분마다 · 시장마다 1줄", "3518667 (약 3.5조원)"],
+      ["raw_market_snapshot.price · change_pct (kind=stock)",
+       "업종을 대표하는 회사 21곳의 주가와, 각각 어제보다 몇 퍼센트 오르내렸는지. 업종은 반도체·화학·건설처럼 하는 일이 비슷한 회사들의 묶음이고, 묶음마다 가장 덩치 큰 회사 한 곳을 대표로 뽑는다. 이 21곳 중 몇 곳이 오르고 몇 곳이 내렸는지를 세면 시장이 다 같이 움직였는지 일부만 움직였는지 알 수 있다",
+       "1분마다 · 시장마다 21줄", "21줄 — 003380 11090 · -1.33 / 005930 … / 051910 … "],
+      ["dim_basket.market · stock_code · sector_l1 (basket_type=leader)",
+       "그 대표 회사 21곳이 누구인지 적어 둔 명단 — 어느 시장의, 어느 업종을 대표하는, 어느 회사인가. 회사 덩치 순위는 계속 바뀌므로 매일 아침 다시 뽑고, 거래가 멈춘 회사는 빠져서 21곳보다 적을 수 있다",
+       "아침 1회 · 시장마다 21줄", "21줄 — 005930 · 반도체·전자 / 051910 · 화학 / 000720 · 건설·엔지니어링 …"],
+      ["raw_index_ohlc.date · market · close",
+       "하루가 끝났을 때 그 시장의 대표 숫자가 얼마였는지(그날의 마지막 값)와, 며칠 어느 시장인지. 최근 20일치를 평균 내 지금이 평소보다 높은 자리인지 낮은 자리인지 가늠하는 데 쓴다",
+       "하루 1줄 · 시장마다", "2026-09-15 · KR-KOSPI · 6627.26"],
+      ["raw_index_ohlc.high · low",
+       "하루 동안 그 대표 숫자가 가장 높았던 값과 가장 낮았던 값. 둘의 차이가 그날 시장이 얼마나 출렁였는지를 말해 준다 — 차이가 크면 하루에도 오르내림이 심했다는 뜻이다",
+       "하루 1줄 · 시장마다", "6715.46 · 6582.2"],
+      ["raw_index_ohlc.trade_value",
+       "하루 동안 그 시장에서 오간 돈의 총액. 백만원을 1로 센 숫자다. 최근 20일 평균과 견줘 오늘 유난히 돈이 몰렸는지 판단한다",
+       "하루 1줄 · 시장마다", "16245351 (약 16.2조원)"],
+      ["state_params.params (scope=bg_daily · intraday)",
+       "오딘이 미리 한 번 계산해 모든 모델에게 똑같이 나눠 주는 재료. 모델마다 제각각 계산하면 나중에 성적을 견줄 때 '입력이 달랐다'는 말이 나오므로 재료를 통일한다. 아침에 한 번 정해져 하루 종일 안 바뀌는 값(어제까지의 평균·기준선)과, 1분마다 새로 계산되는 값(지금 대표 숫자·오간 돈·대표 회사 집계)이 함께 들어 있다",
+       "배경 아침 1줄 · 장중 1분마다", '{"surge_threshold": 1.3341, "ma20": 820.7565, "money_ratio": null}'],
     ],
     out: [
-      ["state_code", "상태 한 단어", "실시간 8개(crash·surge·theme_up·selloff·fire·up·down·flat) · 주간 5개(emergency·downtrend·uptrend·volatile·box)"],
-      ["state_sectors", "역행 상승 업종 목록(sector_l1 원문)", "테마주상승일 때만, 상승률 높은 순"],
-      ["state_conf", "확신도 0~1", "규칙 확정 전이면 빈칸 · 급락+전원 하락 = 1.0"],
-      ["breadth_up · breadth_down · breadth_total", "대장주 폭 — 오른/내린/표본 수", "폭 재료 없으면 빈칸"],
-      ["label_kr", "사람용 문구", "예: 테마주상승 — 반도체"],
-      ["metrics", "판정 근거 지표 묶음", "지수 등락 · 대금 배율과 기준 · 폭 세부 · 사용한 바스켓 등"],
-      ["model_id · rule_ver", "누가 어떤 규칙으로 판정했나", "마트 명부(dim_model)와 연결"],
-      ["scope · basis · as_of", "시야 · 재료 · 판정 시각", "rt(실시간)/w(주간) · live(1분)/eod(종가)"],
+      ["ts · as_of",
+       "판단을 기록한 시각과, 그 판단에 쓴 자료가 몇 시 것인지. 자료가 늦게 도착하면 둘이 벌어지는데, 그 간격을 보면 이 판단이 얼마나 최신 자료로 내려졌는지 알 수 있다. 둘 다 반드시 채운다",
+       "한국시간", "2026-09-16T09:46:25+09:00 · 2026-09-16T09:46:00+09:00"],
+      ["market · model_id",
+       "어느 시장을 본 판단인지, 그리고 누가 내린 판단인지(모델 이름). 같은 시각에 여러 모델이 각자 한 줄씩 낼 수 있어서 이름으로 구분하며, 이름은 미리 등록해 두어야 한다. 둘 다 반드시 채운다",
+       "KR-KOSPI / KR-KOSDAQ", "KR-KOSPI · rule-temp-rt-v1"],
+      ["scope · horizon · basis",
+       "얼마나 긴 기간을 본 판단인지, 언제에 대한 판단인지, 어떤 자료로 내렸는지. 셋 다 반드시 채운다",
+       "rt(오늘 하루의 모습) / w(최근 닷새의 성격) · now(지금) / d1(내일) / w1(다음 주) · live(장이 열린 중 실시간) / eod(장이 끝난 뒤 확정값) / pre(장 열기 전 대용 자료) / after(장 끝난 뒤 저녁 대용 자료)",
+       "rt · now · live"],
+      ["state_code",
+       "지금 시장이 어떤 상태인지를 나타내는 단어 하나. 여러 조건에 동시에 걸려도 가장 중요한 하나만 고른다. 읽는 쪽이 모르는 단어를 새로 만들어 쓰면 무시되니, 아래 목록 안에서 골라야 한다. 반드시 채운다",
+       "오늘 하루 8개(확정): crash(크게 떨어짐) · surge(크게 오름) · theme_up(일부 업종만 오름) · selloff(팔자가 몰림) · fire(사자가 몰림) · up(오름) · down(내림) · flat(제자리) / 최근 닷새 5개(초안): emergency(긴급) · downtrend(내리는 흐름) · uptrend(오르는 흐름) · volatile(출렁임이 큼) · box(한 자리 맴돔)",
+       "up"],
+      ["state_sectors",
+       "시장 전체는 내리는데 유독 오른 업종이 있을 때, 그 업종 이름을 많이 오른 순서대로 적는다. 그런 상황이 아니면 비워 둔다",
+       "업종 이름 목록, 아니면 빈칸", 'null (일부 업종만 오를 때 ["반도체·전자", "화학"])'],
+      ["state_conf",
+       "이 판단이 얼마나 확실한지를 0에서 1 사이 숫자로. 정해진 규칙만으로 판정하는 모델은 보통 비워 두고, 누가 봐도 분명한 경우(크게 떨어지면서 대표 회사가 한 곳도 빠짐없이 내림)에만 1을 넣는다",
+       "0~1 사이 숫자, 아니면 빈칸", "null"],
+      ["breadth_up · breadth_down · breadth_total",
+       "대표 회사 21곳 중 오른 곳 수, 내린 곳 수, 그리고 실제로 셀 수 있었던 곳 수. 거래가 멈춘 회사가 있으면 21보다 적어지므로 셋째 숫자를 따로 적어 둔다. 이 집계를 쓰지 않는 모델은 비워 둔다",
+       "숫자, 아니면 빈칸", "8 · 13 · 21"],
+      ["label_kr",
+       "화면에 그대로 보여 줄 한국어 문구. 사람이 읽으라고 만든 칸이라 문구는 언제든 다듬으니, 프로그램이 이 글자를 보고 판단하게 만들면 안 된다",
+       "자유 문구", "상승"],
+      ["metrics",
+       "그렇게 판단한 근거로 실제 사용한 숫자들과, 그 순간 대표 회사 명단이 무엇이었는지. 나중에 '왜 그때 그렇게 봤나'를 되짚을 수 있게 남기는 증거다. 반드시 채운다",
+       "정해진 틀 없이 이름 붙인 값 묶음 — 이름은 위 공용 재료와 같게 쓰기를 권한다",
+       '{"chg":0.84,"n":21,"up":8,"down":13,"money_ratio":null,"surge_threshold":1.4136,"basket":{"반도체·전자":"005930"}}'],
+      ["rule_ver",
+       "판단 규칙의 버전. 기준 숫자를 바꿨으면 이 버전을 올려서, 예전 판단과 지금 판단이 서로 다른 규칙이었음을 알 수 있게 한다. 반드시 채운다",
+       "자유 문구", "rt-rules-v1"],
     ],
-    outNote: "출력은 state_market_temp 표준 한 줄 — 어떤 모델이든 같은 규격이라 나란히 비교·교체 가능",
+    outNote: "한 번 쓴 줄은 고치거나 지우지 않고 계속 쌓기만 한다 — 어떤 모델이든 같은 규격이라 나란히 비교하고 갈아 끼울 수 있다",
   },
-  /* 매매리스트·매매모델은 모듈 설계 전 — 아래는 규격 초안(표·칼럼 이름은 확정 시 갱신) */
+  /* 매매리스트·매매모델은 모듈 설계 전 — 입력 중 state_market_temp·dim_stock·raw_market_snapshot은 실제 표이고,
+     출력 쪽은 아직 규격 초안이다(표·칸 이름은 모듈 설계 때 확정). */
   pick: {
     in: [
-      ["state_market_temp.state_code · basis · as_of", "구독한 시장 온도 모델의 상태값", "구독"],
-      ["dim_stock.stock_code · sector_l1 · market_cap · status", "종목 마스터 — 업종·시총·거래 상태", "매일"],
-      ["raw_market_snapshot.price · change_pct · acc_amount (kind=stock)", "종목 시세·거래대금", "1분마다"],
+      ["state_market_temp.state_code · state_sectors · scope · basis · as_of",
+       "시장 온도 모델이 내놓은 판단 줄을 그대로 받아 본다 — 지금 시장이 어떤 상태인지, 유독 오른 업종이 있는지, 어느 기간을 본 판단인지, 어떤 자료로 언제 내렸는지. 어느 모델의 판단을 볼지는 모델 이름으로 골라 둔다",
+       "그 모델이 내는 주기(보통 1분)", "up · null · rt · live · 2026-09-16T09:46:00+09:00"],
+      ["dim_stock.stock_code · sector_l1 · market_cap · status",
+       "상장된 회사들의 기본 정보 — 회사 번호, 무슨 업종인지, 회사 덩치가 얼마인지(주식 전부를 지금 값으로 환산한 금액, 원 단위), 지금 정상적으로 거래되는지. 이 표의 시장 이름 표기는 시세 표와 달라(KOSPI·KOSDAQ) 그대로 맞대면 안 맞는다",
+       "매일 갱신 · 회사마다 1줄", "005930 · 반도체·전자 · 412000000000000(412조원) · 정상"],
+      ["raw_market_snapshot.price · change_pct · acc_amount (kind=stock)",
+       "회사 한 곳 한 곳의 지금 주가, 어제보다 몇 퍼센트 오르내렸는지, 오늘 그 회사 주식에 오간 돈(회사는 원 단위로 센다)",
+       "1분마다 · 회사마다 1줄", "003380 11090 · -1.33 · 445040465"],
     ],
     out: [
-      ["종목코드 목록(우선순위 순)", "매매 후보", "규격 초안 — 표 이름 확정 전"],
-      ["사유 · 점수", "왜 골랐나(종목마다 한 줄)", "규격 초안"],
+      ["종목코드 목록(우선순위 순)",
+       "사거나 팔 만하다고 고른 회사들의 번호를, 더 좋게 본 순서대로 늘어놓는다. 어느 표에 어떤 칸 이름으로 담을지는 아직 정하지 않았다",
+       "규격 초안", '["005930", "003380", "051910"]'],
+      ["사유 · 점수",
+       "왜 그 회사를 골랐는지 한 줄 설명과, 얼마나 좋게 봤는지 점수. 아직 정하지 않은 규격이다",
+       "규격 초안", "대장주 역행 상승 · 0.74"],
     ],
-    outNote: "출력은 매매리스트 표준 한 줄(규격 초안 — 모듈 설계 시 확정) — 매매모델이 이 목록에서 골라 매매",
+    outNote: "고른 회사 목록을 정해진 한 줄로 내보낸다(아직 초안) — 매매모델이 이 목록에서 골라 사고판다",
   },
   trade: {
     in: [
-      ["state_market_temp.state_code · basis · as_of", "구독한 시장 온도 모델의 상태값", "구독"],
-      ["매매리스트 출력(후보 종목·사유·점수)", "매매 후보 목록", "구독"],
-      ["보유 종목 · 현금 · 체결 기록", "실행 모듈이 기록한 계좌 상태", "매 판단 시"],
+      ["state_market_temp.state_code · scope · basis · as_of",
+       "시장 온도 모델이 내놓은 판단 줄. 보통 최근 닷새의 성격(오르는 흐름인지 내리는 흐름인지 같은 이름표)을 보고 매매 방식을 가른다",
+       "그 모델이 내는 주기(보통 1분)", "downtrend · w · live · 2026-09-16T09:46:00+09:00"],
+      ["매매리스트 출력(후보 종목 · 사유 · 점수)",
+       "매매리스트 모듈이 골라 준 후보 회사 목록과 그 이유·점수. 아직 정하지 않은 규격이다",
+       "규격 초안 · 구독", "005930 · 대장주 역행 상승 · 0.74"],
+      ["보유 종목 · 현금 · 체결 기록",
+       "지금 무엇을 몇 주 갖고 있고 현금이 얼마 남았는지, 그동안 어떤 거래가 성사됐는지. 실제 주문을 넣는 모듈이 기록해 둔 것이고, 어느 표에 담을지는 아직 정하지 않았다",
+       "규격 초안 · 매 판단 시", "005930 12주 · 현금 18400000원"],
     ],
     out: [
-      ["order_intent — 종목 · 방향(사라/팔라) · 수량 · 근거", "주문 의도", "규격 초안 — 모듈 설계 시 확정"],
+      ["order_intent — 종목 · 방향(사라/팔라) · 수량 · 근거",
+       "어느 회사를, 사자는 것인지 팔자는 것인지, 몇 주를, 왜 그런지. 모델은 여기까지만 내놓고 실제 주문은 다른 모듈이 안전장치를 걸고 넣는다. 아직 정하지 않은 규격이다",
+       "규격 초안", "005930 · 사라 · 10주 · 상승장 진입"],
     ],
-    outNote: "출력은 order_intent 표준 한 줄(규격 초안) — 실제 주문은 실행 모듈이 안전장치를 걸고 집행(모델은 제안만)",
+    outNote: "사고팔 뜻만 정해진 한 줄로 내보낸다(아직 초안) — 실제 주문은 실행 모듈이 안전장치를 걸고 넣는다(모델은 제안만)",
   },
 };
 
 function ioTable(rows, heads) {
   return `<div class="tbl-wrap"><table class="tbl">
     <thead><tr>${heads.map(h => `<th style="text-align:left">${h}</th>`).join("")}</tr></thead>
-    <tbody>${rows.map(r => `<tr>${r.map((c, i) =>
+    <tbody>${rows.map(r => `<tr>${r.slice(0, heads.length).map((c, i) =>
       `<td style="text-align:left;white-space:normal;overflow-wrap:anywhere${i ? ";color:var(--muted)" : ""}">${c}</td>`).join("")}</tr>`).join("")}</tbody>
   </table></div>`;
 }
@@ -439,88 +509,98 @@ $("#main").addEventListener("input", e => {
 });
 
 /* ═══════════ 판매 ═══════════ */
-const SELL = { type: "state", filter: "all", sel: "s2", upload: null, timer: null };   /* type = 종류 탭(리스트 화면과 동일), filter = 그 안의 상태 */
+const SELL = { type: "state", sel: "s2", upload: null, timer: null };   /* type = 종류 탭(리스트 화면과 동일). 상태 필터는 제거(2026-09-17 검수) — 개수는 위 요약 칸이 보여준다 */
 
 /* 내 모델을 종류 탭으로 먼저 거른다 — 리스트 화면의 buyList()와 같은 자리 */
 function myList(type = SELL.type) { return MY.filter(r => r.type === type); }
 
 function statusBadge(s) { const [t, c] = STATUS[s]; return `<span class="badge ${c}">${t}</span>`; }
 
-function reportHtml(r) {
-  const mark = v => v === 1 ? '<span class="badge ok">통과</span>' : v === 0 ? '<span class="badge bad">위반</span>' : '<span class="badge wait">진행 중</span>';
-  return `<div class="panel">
-    <div class="p-head"><span class="p-title">검증 리포트</span><span class="p-sub">${esc(r.name)} v${r.ver}</span></div>
-    <div class="p-body">
-      <table class="check">
-        ${CHECKS.map(([k, label]) => `<tr><td>${label}${k === "spec" ? ` <span class="note">(${TYPES[r.type]} v1)</span>` : ""}</td><td>${mark(r.checks[k])}</td></tr>`).join("")}
-        <tr><td>백테스트</td><td><span class="note">${r.bt}</span></td></tr>
-      </table>
-      ${r.fail ? `<div class="sec">위반 위치</div><div class="mono">${esc(r.fail)}</div>` : ""}
-      <div class="sec">올린 경로</div>
-      <div style="font-size:12.5px">${esc(r.via)} · <span class="num">${r.at}</span></div>
-      <div class="row-btns">
-        <button class="btn" disabled title="리포트 전체 화면은 다음 차례">리포트 전체</button>
-        ${r.status === "reject" ? '<button class="btn pri" data-act="upload">수정본 올리기</button>' : ""}
-      </div>
-    </div>
-  </div>`;
-}
-
 function renderSell() {
-  if (SELL.upload) return renderUpload();
-  const mine = myList();
-  const cnt = s => mine.filter(r => r.status === s).length;
-  const rows = mine.filter(r => SELL.filter === "all" || r.status === SELL.filter);
-  const sel = rows.find(r => r.id === SELL.sel) || rows[0];   // 다른 종류 탭으로 옮기면 리포트도 그 탭의 첫 모델로
-  const segs = [["all", "전체"], ["sale", "판매 중"], ["passed", "검증 통과"], ["verify", "검증 중"], ["reject", "반려"]];
+  const rows = myList();
+  const cnt = s => rows.filter(r => r.status === s).length;
+  const L = KPI_LABELS[SELL.type];   /* 숫자 칸은 리스트 화면과 같은 것으로 — 검증 전이면 빈칸(2026-09-17 검수) */
   $("#main").innerHTML = `
     <div class="ttabs">${Object.entries(TYPES).map(([k, v]) =>
       `<button data-stab="${k}" class="${SELL.type === k ? "on" : ""}">${v}<span class="n">${myList(k).length}</span></button>`).join("")}</div>
     <div class="panel kpis">
       <div><b>${cnt("sale")}</b>판매 중</div><div><b>${cnt("passed")}</b>검증 통과</div>
       <div><b>${cnt("verify")}</b>검증 중</div><div><b>${cnt("reject")}</b>반려</div>
-      <div><b>${mine.reduce((a, r) => a + (r.buys || 0), 0)}</b>이번 달 구매 수</div>
+      <div><b>${rows.reduce((a, r) => a + (r.buys || 0), 0)}</b>이번 달 구매 수</div>
     </div>
     <div class="sell">
       <div class="panel">
         <div class="p-head"><span class="p-title">내 모델</span>
-          <div class="seg">${segs.map(([k, v]) => `<button data-seg="${k}" class="${SELL.filter === k ? "on" : ""}">${v}</button>`).join("")}</div>
           <button class="btn pri" style="margin-left:auto" data-act="upload">새 모델 올리기</button>
         </div>
         <div class="tbl-wrap"><table class="tbl">
-          <thead><tr><th>모델</th><th>버전</th><th>상태</th><th>기준선 대비</th><th>구매 수</th><th>가격</th></tr></thead>
-          <tbody>${rows.map(r => `<tr data-row="${r.id}" class="${sel && r.id === sel.id ? "sel" : ""}">
+          <thead><tr><th>모델</th><th>버전</th><th>상태</th>${L.map(x => `<th>${x}</th>`).join("")}<th>구매 수</th><th>가격</th></tr></thead>
+          <tbody>${rows.map(r => `<tr data-row="${r.id}" class="${SELL.sel === r.id ? "sel" : ""}">
             <td><b>${esc(r.name)}</b></td><td>v${r.ver}</td><td>${statusBadge(r.status)}</td>
-            <td class="${r.vs == null ? "" : cls(r.vs)}">${r.vs == null ? "—" : sign(r.vs) + "%p"}</td>
+            ${L.map((_, i) => `<td>${r.k ? kpiFmt(r, i, r.k[i]) : "—"}</td>`).join("")}
             <td>${r.buys == null ? "—" : r.buys}</td><td>${r.status === "sale" || r.status === "passed" ? "유료" : "—"}</td></tr>`).join("")}</tbody>
         </table></div>
-        ${rows.length ? "" : `<div class="empty">${mine.length ? "해당 상태의 모델이 없습니다." : TYPES[SELL.type] + " 종류로 올린 모델이 없습니다."}</div>`}
+        ${rows.length ? "" : `<div class="empty">${TYPES[SELL.type]} 종류로 올린 모델이 없습니다.</div>`}
       </div>
-      ${sel ? reportHtml(sel) : ""}
-    </div>`;
+    </div>
+    ${SELL.upload ? uploadHtml() : ""}`;
 }
 
-/* ── 새 모델 올리기 (업로드 탭) ── */
+/* ── 새 모델 올리기 — 화면을 갈아끼우지 않고 새 창(모달)으로(2026-09-17 검수) ── */
 function startUpload() {
-  SELL.upload = { step: 1, way: "mcp", pick: MCP_QUEUE[0].id, name: MCP_QUEUE[0].name, type: MCP_QUEUE[0].type, desc: "", price: "", progress: 0, rowId: null };
-  TAB = "upload";
-  syncUrl();
-  render();
+  SELL.upload = { step: 1, type: SELL.type, name: "", file: null, copied: false, desc: "", price: "", progress: 0, rowId: null };
+  renderSell();
 }
 
-function miniList(u) {
-  const label = u.rowId ? statusBadge(MY.find(r => r.id === u.rowId).status) : '<span class="note">올리는 중</span>';
-  return `<div class="panel"><div class="p-head"><span class="p-title">내 모델</span></div>
-    <ul class="mini">
-      <li class="new"><span>${esc(u.name || "새 모델")}</span>${label}</li>
-      ${MY.filter(r => r.id !== u.rowId).map(r => `<li><span>${esc(r.name)} v${r.ver}</span>${statusBadge(r.status)}</li>`).join("")}
-    </ul></div>`;
+/* 검증을 통과한 예시 성적 — 올리기 미리보기 카드와 내 모델 표가 같은 값을 쓴다 */
+const PASS_K = { trade: [12.1, -8.4], pick: [5.3, 18], state: [58, 498] };
+
+/* LLM에게 그대로 넘기는 규격 — IO_SPEC 표를 글로 편 것(화면의 상세 표와 같은 내용) */
+function specText(type) {
+  const io = IO_SPEC[type];
+  return [`# ${TYPES[type]} 모듈 규격 v1`, "", "입력 — 읽는 값"]
+    .concat(io.in.map(r => `  ${r[0]}\n      ${r[1]} · ${r[2]}\n      예: ${r[3]}`))
+    .concat(["", "출력 — 내보낼 값"])
+    .concat(io.out.map(r => `  ${r[0]}\n      ${r[1]} = ${r[2]}\n      예: ${r[3]}`))
+    .concat(["", `* ${io.outNote}`]).join("\n");
+}
+
+/* 화면용 스키마 정의서 — 보내는 값 이름 · 실제 값 예시 · 설명 */
+function schemaTable(type) {
+  const io = IO_SPEC[type];
+  const rows = g => g.map(r => `<tr><td>${esc(r[0])}</td><td>${esc(r[3])}</td><td>${esc(r[1])} · ${esc(r[2])}</td></tr>`).join("");
+  return `<div class="schema-wrap"><table class="schema">
+    <thead><tr><th>값 이름</th><th>실제 값 예시</th><th>설명</th></tr></thead>
+    <tbody>
+      <tr class="grp"><td colspan="3">읽는 값 (입력)</td></tr>
+      ${rows(io.in)}
+      <tr class="grp"><td colspan="3">내보낼 값 (출력)</td></tr>
+      ${rows(io.out)}
+    </tbody></table></div>`;
+}
+
+/* 규격을 붙여 그대로 LLM에게 보내는 지시문 */
+function promptText(type) {
+  return [
+    `오딘 마켓에 올릴 "${TYPES[type]}" 모듈을 만들어 줘.`,
+    "아래 규격을 그대로 지켜야 검증을 통과한다.",
+    "",
+    specText(type),
+    "",
+    "지켜야 할 것",
+    "  - 증권사 키를 읽지 않는다",
+    "  - 바깥으로 아무것도 보내지 않는다",
+    "  - 직접 주문하지 않는다 (주문 의도만 내보낸다)",
+    "  - 미래 데이터를 보지 않는다 (판단 시각 이후 값 금지)",
+    "  - 한 번 실행이 1분을 넘지 않는다",
+    "",
+    "만든 뒤에는 오딘 MCP 도구로 과거 시세 2년을 받아 백테스트를 돌리고,",
+    "기준선을 넘으면 업로드 요청을 보내 줘. 올리는 것은 사람이 승인한다.",
+  ].join("\n");
 }
 
 function previewCard(u, passed) {
-  const m = { id: "pv", name: u.name || "이름", type: u.type, seller: "나", ver: 1, desc: u.desc || "한 줄 설명", free: false, k: [12.1, -8.4], vs: 5.3, seed: 29 };
-  if (m.type === "pick") m.k = [5.3, 18];
-  if (m.type === "state") m.k = [58, 498];
+  const m = { id: "pv", name: u.name || "이름", type: u.type, seller: "나", ver: 1, desc: u.desc || "한 줄 설명", free: false, k: PASS_K[u.type], vs: 5.3, seed: 29 };
   const head = `<div class="p-head"><span class="badge">${TYPES[m.type]}</span><span class="badge ${passed ? "ok" : "wait"}">${passed ? "검증 통과" : "검증 전"}</span></div>`;
   const body = passed
     ? `${curve(m.seed, m.vs)}${kpiCells(m)}`
@@ -534,40 +614,41 @@ function previewCard(u, passed) {
     <div class="preview-cap">${passed ? "성적은 검증 결과 — 제작자 수정 불가" : "회색 칸은 검증이 채움"}</div>`;
 }
 
-function renderUpload() {
+function uploadHtml() {
   const u = SELL.upload;
   const names = ["① 가져오기", "② 정보", "③ 검증", "④ 판매 설정"];
   const steps = names.map((n, i) => `<div class="${i + 1 === u.step ? "on" : i + 1 < u.step ? "done" : ""}">${n}</div>`).join("");
   let body = "", foot = "";
 
+  /* 1단계 = 규격·프롬프트 챙기기 + 모듈 파일 올리기. MCP로 보내온 모델을 화면에서 승인하는 자리는 두지 않는다
+     — LLM은 규격·시세·백테스트만 쓰고, 올리는 것은 사람이 파일로 한다(2026-09-17 사용자 결정) */
   if (u.step === 1) {
-    body = `<div class="ways">
-      <div class="way${u.way === "mcp" ? " on" : ""}" data-way="mcp">
-        <h4><input type="radio" ${u.way === "mcp" ? "checked" : ""}> LLM이 MCP로 보낸 모델</h4>
-        <div class="note">MCP 연결 <span class="badge on">연결됨 · Claude</span> <span class="mono">토큰 ••••7f3a</span></div>
-        <div class="sec">승인 대기</div>
-        <ul class="queue">${MCP_QUEUE.map(q => `<li class="${u.way === "mcp" && u.pick === q.id ? "pick" : ""}">
-          <span>${esc(q.name)}<br><span class="note">${TYPES[q.type]} · ${q.at} · ${q.memo}</span></span>
-          <button class="btn sm${u.way === "mcp" && u.pick === q.id ? " pri" : ""}" data-pick="${q.id}">${u.way === "mcp" && u.pick === q.id ? "선택됨" : "선택"}</button></li>`).join("")}</ul>
-        <div class="sec">LLM에게 주는 재료</div>
-        <div class="note">규격 문서 4종 · 시장 온도·판정 파라미터 조회 · 과거 시세 2년 · 백테스트 하루 20회 · 업로드 요청(사람 승인)</div>
+    body = `<div class="kindrow">
+      <select id="u-kind">${Object.entries(TYPES).map(([k, v]) => `<option value="${k}"${u.type === k ? " selected" : ""}>${v}</option>`).join("")}</select></div>
+    <div class="ways">
+      <div class="way">
+        <div class="sec">스키마 정의서</div>
+        ${schemaTable(u.type)}
+        <div class="sec pickrow">보낼 프롬프트
+          <button class="btn sm" data-act="copy" style="margin-left:auto">${u.copied ? "복사됨" : "복사"}</button></div>
+        <textarea class="codebox" id="u-prompt" readonly>${esc(promptText(u.type))}</textarea>
       </div>
-      <div class="way${u.way === "code" ? " on" : ""}" data-way="code">
-        <h4><input type="radio" ${u.way === "code" ? "checked" : ""}> 코드 파일</h4>
-        <div class="fld"><div class="lb">종류</div>
-          <select id="u-type">${Object.entries(TYPES).map(([k, v]) => `<option value="${k}"${u.type === k ? " selected" : ""}>${v}</option>`).join("")}</select></div>
-        <div class="drop">모듈 파일 끌어놓기</div>
-        <div class="note" style="margin-top:8px">규격 문서 · 예제 모듈 (규격 확정 후 제공)</div>
+      <div class="way">
+        <div class="sec">모듈 올리기</div>
+        <label class="drop${u.file ? " has" : ""}" id="u-drop">
+          <input type="file" id="u-file" accept=".py,.zip" hidden>
+          ${u.file ? `<b>${esc(u.file.name)}</b><span class="note">${u.file.size}</span>` : "업로드"}
+        </label>
       </div>
     </div>`;
-    foot = `<button class="btn" data-act="cancel">취소</button><button class="btn pri" data-act="next">다음: 정보</button>`;
+    foot = `<button class="btn" data-act="cancel">취소</button><button class="btn pri" data-act="next"${u.file ? "" : " disabled"}>다음: 정보</button>`;
   }
 
   if (u.step === 2) {
     body = `<div class="two">
       <div>
-        <div class="fld"><div class="lb">가져온 모델</div><div class="ro">${u.way === "mcp" ? "MCP · Claude" : "코드 파일"}</div></div>
-        <div class="fld"><div class="lb">종류</div><div class="ro">${TYPES[u.type]} <span class="note">${u.way === "mcp" ? "모델이 선언한 규격에서 자동" : ""}</span></div></div>
+        <div class="fld"><div class="lb">올린 파일</div><div class="ro">${esc(u.file ? u.file.name : "")} <span class="note">${u.file ? u.file.size : ""}</span></div></div>
+        <div class="fld"><div class="lb">종류</div><div class="ro">${TYPES[u.type]}</div></div>
         <div class="fld"><div class="lb">이름</div><input type="text" id="u-name" value="${esc(u.name)}" maxlength="30"></div>
         <div class="fld"><div class="lb">버전</div><div class="ro">v1 <span class="note">새 모델</span></div></div>
         <div class="fld"><div class="lb">한 줄 설명</div><input type="text" id="u-desc" value="${esc(u.desc)}" maxlength="40" placeholder="무엇을 하는 모델인지"></div>
@@ -611,20 +692,25 @@ function renderUpload() {
     foot = `<button class="btn" data-act="save">검증 통과로 저장</button><button class="btn pri" disabled title="과금 방식·법적 검토 뒤">판매 시작</button>`;
   }
 
-  $("#main").innerHTML = `<div class="sell upload">
-    ${miniList(u)}
-    <div class="panel">
-      <div class="p-head"><span class="p-title">새 모델 올리기</span><button class="btn sm" style="margin-left:auto" data-act="close">닫기</button></div>
-      <div class="p-body"><div class="steps">${steps}</div>${body}<div class="row-btns">${foot}</div></div>
-    </div>
-  </div>`;
+  return `<div class="modal-back" data-upload-back><div class="modal panel">
+    <div class="p-head"><span class="p-title">새 모델 올리기</span><button class="btn sm" style="margin-left:auto" data-act="close">닫기</button></div>
+    <div class="p-body"><div class="steps">${steps}</div>${body}<div class="row-btns">${foot}</div></div>
+  </div></div>`;
+}
+
+/* 창을 닫으면 방금 다룬 모델이 있는 종류 탭·행을 골라둔다 — 검증은 닫아도 계속 */
+function closeUpload() {
+  const u = SELL.upload;
+  if (u && u.rowId) { SELL.sel = u.rowId; SELL.type = u.type; }
+  SELL.upload = null;
+  renderSell();
 }
 
 /* 검증 진행(예시): 3초 남짓 걸려 끝남. 창을 닫아도 계속되고, 표의 "검증 중" 행이 끝나면 "검증 통과"로 바뀐다 */
 function runVerify() {
   const u = SELL.upload;
-  const row = { id: "s" + Date.now(), name: u.name.trim(), type: u.type, ver: 1, status: "verify", vs: null, buys: null,
-                via: u.way === "mcp" ? "MCP · Claude" : "코드 파일", at: "방금", checks: { spec: 1, key: 1, net: 1, order: 1, future: null }, bt: "진행 중" };
+  const row = { id: "s" + Date.now(), name: u.name.trim(), type: u.type, ver: 1, status: "verify", k: null, buys: null,
+                via: "올린 파일 — " + u.file.name, at: "방금", checks: { spec: 1, key: 1, net: 1, order: 1, future: null }, bt: "진행 중" };
   MY = [row, ...MY];
   u.rowId = row.id; u.step = 3; u.progress = 0;
   renderSell();
@@ -633,7 +719,7 @@ function runVerify() {
     u.progress = Math.min(100, u.progress + 7);
     if (u.progress >= 100) {
       clearInterval(SELL.timer);
-      Object.assign(row, { status: "passed", vs: 5.3, bt: "통과", checks: { spec: 1, key: 1, net: 1, order: 1, future: 1 } });
+      Object.assign(row, { status: "passed", k: PASS_K[row.type], bt: "통과", checks: { spec: 1, key: 1, net: 1, order: 1, future: 1 } });
       if (TAB === "upload") renderSell();   // 분석 탭(모델 목록)을 덮어쓰지 않게 업로드 탭에서만
       return;
     }
@@ -643,7 +729,7 @@ function runVerify() {
 }
 
 $("#main").addEventListener("click", e => {
-  const t = e.target.closest("[data-ttab],[data-stab],[data-detail],[data-detail-close],[data-modal-back],[data-buy],[data-seg],[data-row],[data-act],[data-way],[data-pick]");
+  const t = e.target.closest("[data-ttab],[data-stab],[data-detail],[data-detail-close],[data-modal-back],[data-upload-back],[data-buy],[data-row],[data-act]");
   if (!t) return;
   if (t.dataset.ttab) { BUY.type = t.dataset.ttab; renderBuy(); }
   else if (t.dataset.detail) { BUY.sel = t.dataset.detail; renderBuy(); }
@@ -651,35 +737,29 @@ $("#main").addEventListener("click", e => {
   else if (t.dataset.modalBack !== undefined) {   // 모달 바깥(어두운 배경)을 직접 눌러도 닫힘
     if (e.target === t) { BUY.sel = null; renderBuy(); }
   }
+  else if (t.dataset.uploadBack !== undefined) {   // 올리기 창도 바깥을 누르면 닫힘(검증은 계속)
+    if (e.target === t) closeUpload();
+  }
   else if (t.dataset.buy) {
     BUY.hint[t.dataset.buy] = "다운로드 준비 중 — 마켓 DB 연결 뒤";
     BUY.last = t.dataset.buy;   /* 목록에서 눌렀을 때도 안내가 보이게 */
     renderBuy();
-  } else if (t.dataset.stab) { SELL.type = t.dataset.stab; SELL.filter = "all"; renderSell(); }
-  else if (t.dataset.seg) { SELL.filter = t.dataset.seg; renderSell(); }
+  } else if (t.dataset.stab) { SELL.type = t.dataset.stab; renderSell(); }
   else if (t.dataset.row) { SELL.sel = t.dataset.row; renderSell(); }
-  else if (t.dataset.pick) {
-    const q = MCP_QUEUE.find(x => x.id === t.dataset.pick);
-    Object.assign(SELL.upload, { way: "mcp", pick: q.id, name: q.name, type: q.type });
-    renderSell();
-  } else if (t.dataset.way) {
-    if (e.target.closest("select")) return;
-    if (SELL.upload.way !== t.dataset.way) {
-      SELL.upload.way = t.dataset.way;
-      if (t.dataset.way === "code") Object.assign(SELL.upload, { pick: null, name: "" });
-      renderSell();
-    }
-  } else {
+  else {
     const u = SELL.upload, act = t.dataset.act;
     if (act === "upload") startUpload();
-    else if (act === "cancel" || act === "close") {   // 닫으면 업로드 탭의 "내 모델 관리"로 — 방금 다룬 모델이 있는 종류 탭으로
-      if (u && u.rowId) { SELL.sel = u.rowId; SELL.type = u.type; SELL.filter = "all"; }
-      SELL.upload = null; renderSell();
+    else if (act === "copy") {
+      const box = $("#u-prompt");
+      box.select();
+      try { document.execCommand("copy"); } catch (err) {}
+      u.copied = true; renderSell();
     }
+    else if (act === "cancel" || act === "close") closeUpload();
     else if (act === "next") { u.step++; renderSell(); }
     else if (act === "prev") { u.step--; renderSell(); }
     else if (act === "verify") runVerify();
-    else if (act === "save") { SELL.sel = u.rowId; SELL.type = u.type; SELL.filter = "all"; SELL.upload = null; renderSell(); }
+    else if (act === "save") closeUpload();
   }
 });
 
@@ -695,7 +775,36 @@ document.addEventListener("input", e => {
   if (e.target.id === "u-price") u.price = e.target.value;
 });
 document.addEventListener("change", e => {
-  if (e.target.id === "u-type" && SELL.upload) SELL.upload.type = e.target.value;
+  const u = SELL.upload;
+  if (!u) return;
+  if (e.target.id === "u-kind") { u.type = e.target.value; u.copied = false; renderSell(); }
+  if (e.target.id === "u-file" && e.target.files[0]) takeFile(u, e.target.files[0]);
+});
+
+/* 모듈 파일 받기 — 고르기·끌어놓기 둘 다 같은 자리로 (2026-09-17 검수) */
+function takeFile(u, f) {
+  const kb = f.size / 1024;
+  u.file = { name: f.name, size: kb < 1024 ? Math.max(1, Math.round(kb)) + "KB" : (kb / 1024).toFixed(1) + "MB" };
+  u.name = f.name.replace(/\.[^.]+$/, "").slice(0, 30);   // 1단계에서만 들어오므로 이름은 파일 이름으로 채운다
+  renderSell();
+}
+
+document.addEventListener("dragover", e => {
+  const d = e.target.closest && e.target.closest("#u-drop");
+  if (!d) return;
+  e.preventDefault();
+  d.classList.add("over");
+});
+document.addEventListener("dragleave", e => {
+  const d = e.target.closest && e.target.closest("#u-drop");
+  if (d) d.classList.remove("over");
+});
+document.addEventListener("drop", e => {
+  const d = e.target.closest && e.target.closest("#u-drop");
+  if (!d) return;
+  e.preventDefault();
+  const f = e.dataTransfer.files[0];
+  if (f && SELL.upload) takeFile(SELL.upload, f);
 });
 
 /* ═══════════ 탭 — 마켓은 구분자 제목(2026-09-16 사용자 지정): 분석 = 모델 목록 / 업로드 = 올리기·내 모델 관리 ═══════════ */
@@ -711,9 +820,7 @@ function render() {
   /* 탭 표시는 사이드바 하위 메뉴(마켓 밑 분석·업로드)가 담당 */
   document.querySelectorAll("[data-mtab]").forEach(a => a.classList.toggle("on", a.dataset.mtab === TAB));
   if (TAB === "analysis") renderBuy();
-  else renderSell();   /* 업로드 탭 = 내 모델 관리부터. 올리기 마법사가 먼저 튀어나오지 않게(2026-09-16 검수
-                          "업로드를 누르면 옛날 화면이 보이고 닫기를 눌러야 새 화면이 보여").
-                          올리기는 목록의 "새 모델 올리기"로 들어간다 — 하던 흐름이 있으면 renderSell()이 그리로 넘긴다 */
+  else renderSell();   /* 업로드 탭 = 내 모델 관리. 올리기는 목록의 "새 모델 올리기"가 띄우는 새 창으로(2026-09-17 검수) */
 }
 
 document.querySelector(".side").addEventListener("click", e => {
