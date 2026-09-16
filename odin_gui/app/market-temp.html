@@ -116,16 +116,14 @@ a.nav[href*=".html"] { cursor: pointer; }   /* 실제 화면이 있는 메뉴만
 .meta b { color: var(--ink); font-family: 'IBM Plex Mono', Consolas, monospace; }
 
 .state-row { display: flex; align-items: flex-start; gap: 16px; }
+/* 두 시장 카드의 줄 높이를 맞추는 빈 자리 — 한쪽에만 있는 줄(업종·지속시간·전환대기·폭 바) 때문에
+   아래 내용이 밀려 좌우가 어긋나던 문제(2026-09-16 검수). 실제 줄과 같은 모양·같은 글꼴의 문구를
+   숨겨서 자리만 잡는다(빈 칸으로 두면 글꼴이 달라 1px씩 어긋났다) */
+.line-fill { visibility: hidden; }
 .spark { margin-left: auto; flex: none; text-align: right; }
 .spark svg { display: block; }
 .spark-nm { font-size: 10px; color: var(--muted); margin-top: 3px; }
 
-/* 폭 바 */
-.b-bar { display: flex; gap: 2px; margin-top: 14px; }   /* 소제목을 뺀 자리 간격 */
-.b-bar i { flex: 1 1 0; height: 5px; border-radius: 1px; background: var(--seg); }
-.b-bar i.d { background: var(--down); }
-.b-bar i.u { background: var(--up); }
-.b-nm { font-family: 'IBM Plex Mono', Consolas, monospace; font-size: 11px; color: var(--muted); margin-top: 5px; }
 
 .pending { font-size: 12px; color: var(--muted); }
 .empty { padding: 28px 14px; font-size: 13px; color: var(--muted); }
@@ -153,7 +151,7 @@ a.nav[href*=".html"] { cursor: pointer; }   /* 실제 화면이 있는 메뉴만
 .w-draft { font-size: 10.5px; color: var(--muted); margin-left: 8px; font-weight: 500; letter-spacing: 0; text-transform: none; }
 </style>
 </head>
-<body data-rev="r6">
+<body data-rev="r11">
 
 <!-- 상단바 (다크 크롬) -->
 <header class="top">
@@ -266,16 +264,6 @@ function sparkHtml(closes, label = "최근 30일 종가") {
   </svg><div class="spark-nm">${label}</div></div>`;
 }
 
-function breadthHtml(b) {
-  if (!b || !b.total) return "";
-  const flat = Math.max(b.total - b.up - b.down, 0);
-  const segs = Array(b.down).fill('<i class="d"></i>').join("")
-             + Array(flat).fill("<i></i>").join("")
-             + Array(b.up).fill('<i class="u"></i>').join("");
-  return `<div class="b-bar">${segs}</div>
-    <div class="b-nm">하락 ${b.down} · 보합 ${flat} · 상승 ${b.up} / ${b.total}</div>`;
-}
-
 function signed(v, digits = 2) {
   return v == null ? "—" : `${v > 0 ? "+" : ""}${Number(v).toFixed(digits)}%`;
 }
@@ -292,7 +280,20 @@ function weekWord(w) {
   if (w === undefined) return `<div class="pending">설계 중</div>`;               // 목데이터(미국 탭 등)
   if (!w) return `<div class="pending">주간 판정 없음 — 아직 DB에 기록 전</div>`;
   const W = WEEK[w.state] || WEEK.box;
-  return `<span class="word ${W.fam}">${W.nm}</span>`;
+  /* 실시간과 같은 구조: 이름표 + 등락률. 주간의 등락률은 최근 5거래일 누적(판정에 쓴 값 그대로) */
+  const chg5 = w.metrics && w.metrics.chg5 != null ? Number(w.metrics.chg5) : null;
+  const pct = chg5 == null ? ""
+    : `<span class="sub" title="최근 5거래일 누적 등락률">${chgHtml(chg5, "")}</span>`;
+  return `<span class="word ${W.fam}">${W.nm}</span>${pct}`;
+}
+
+/* 주간 이름표가 며칠째인지 — 20거래일 주간 종가 판정 띠에서 같은 상태가 이어진 구간을 센다 */
+function weekSince(w, cells) {
+  if (!w || !cells || !cells.length) return null;
+  let i = cells.length - 1, days = 0, from = w.asof;
+  if (cells[i].d !== w.asof) { days = 1; }          // 오늘(장중) 줄은 띠에 없으니 하루로 먼저 센다
+  while (i >= 0 && cells[i].state === w.state) { days++; from = cells[i].d; i--; }
+  return { from: from.slice(5).replace("-", "/"), days: Math.max(days, 1) };
 }
 
 /* 최근 20거래일 상태 띠 — 좌 = 과거, 우 = 최근. 칸 색 = 상태 색, 올리면 날짜·상태 */
@@ -317,12 +318,19 @@ function rtChip(mk) {
 
 function marketCard(mk) {
   const S = STATE[mk.state] || STATE.flat;
+  const need = mk.need || {};   // 같은 화면의 다른 카드가 쓰는 줄 (없으면 빈 자리로 높이만 맞춤)
   const sectors = mk.sectors && mk.sectors.length
-    ? `<div class="sectors word ${S.fam}" style="font-size:13px">${mk.sectors.map(s => SECTOR_SHORT[s] || s).join("·")}</div>` : "";
+    ? `<div class="sectors word ${S.fam}" style="font-size:13px">${mk.sectors.map(s => SECTOR_SHORT[s] || s).join("·")}</div>`
+    : need.sectors ? `<div class="sectors word line-fill" style="font-size:13px">업종</div>` : "";
   const since = mk.since
-    ? `<div class="meta">${mk.since.from}부터 <b>${mk.since.minutes}분</b>째</div>` : "";
+    ? `<div class="meta">${mk.since.from}부터 <b>${mk.since.minutes}분</b>째</div>`
+    : need.since ? `<div class="meta line-fill">00:00부터 <b>0분</b>째</div>` : "";
   const pending = mk.pending
-    ? `<div class="meta">전환 대기 — ${(STATE[mk.pending.state] || STATE.flat).nm} <b>${mk.pending.minutes}/3분</b></div>` : "";
+    ? `<div class="meta">전환 대기 — ${(STATE[mk.pending.state] || STATE.flat).nm} <b>${mk.pending.minutes}/3분</b></div>`
+    : need.pending ? `<div class="meta line-fill">전환 대기 — 하락 <b>0/3분</b></div>` : "";
+  const ws = weekSince(mk.week, mk.wStrip);
+  const wSince = ws ? `<div class="meta">${ws.from}부터 <b>${ws.days}거래일</b>째</div>`
+                    : (mk.week ? `<div class="meta line-fill">00/00부터 <b>0거래일</b>째</div>` : "");
   return `<div class="panel">
     <div class="p-head">
       <span class="p-title">${mk.name}</span>
@@ -337,11 +345,10 @@ function marketCard(mk) {
         </div>
         ${sparkHtml(mk.closes, mk.sparkLabel)}
       </div>
-      ${breadthHtml(mk.b)}
       ${stripHtml(mk.rtStrip, STATE, "최근 20거래일 · 종가 판정")}
       <div class="sec split">주간${weekChip(mk.week)}</div>
       <div class="state-row">
-        <div>${weekWord(mk.week)}</div>
+        <div>${weekWord(mk.week)}${wSince}</div>
         ${sparkHtml(mk.closes90, "최근 90일 종가")}
       </div>
       ${stripHtml(mk.wStrip, WEEK, "최근 20거래일 · 주간 판정")}
@@ -454,6 +461,8 @@ async function loadKR(sel = null) {
       name: m.replace("KR-", ""), mode,
       state: row.state_code,
       sectors: row.state_sectors || null,
+      /* 대장주 폭(상승·하락 개수)은 화면에서 뺐다(2026-09-16 검수 "뭐가 뭔지 구분도 안 간다") — DB에는 계속 쌓이고,
+         나중에 시장 상세 화면에서 쓸 수 있게 읽기만 남겨 둔다 */
       b: row.breadth_total ? { up: row.breadth_up, down: row.breadth_down, total: row.breadth_total } : null,
       asof: rowDate, asofHm: kst(new Date(row.as_of)).hm,
     };
@@ -523,6 +532,16 @@ function clockHtml(kr) {
   return `<span class="dot"></span>${kr.cards[0].asof} 종가 기준 <span class="note">— ${note}</span>`;
 }
 
+/* 같은 화면에 나란히 놓인 카드들이 서로 어떤 줄을 쓰는지 합쳐 둔다 — 한쪽에만 있는 줄은 상대가 빈 자리로 채운다 */
+function alignCardLines(cards) {
+  const need = {
+    sectors: cards.some(c => c.sectors && c.sectors.length),
+    since:   cards.some(c => c.since),
+    pending: cards.some(c => c.pending),
+  };
+  cards.forEach(c => { c.need = need; });
+}
+
 function render(key) {
   TAB = key;
   const tabs = { kr: "국내주식", us: "미국주식" };
@@ -532,6 +551,7 @@ function render(key) {
   renderDatebar(key);
   if (key === "kr" && KR) {
     document.getElementById("clock").innerHTML = clockHtml(KR);
+    alignCardLines(KR.cards);
     document.getElementById("stacks").innerHTML = KR.cards.length
       ? KR.cards.map(marketCard).join("")
       : `<div class="panel empty">${KR.today}에는 판정이 없습니다 — 휴장일이거나 아직 기록 전입니다.</div>`;

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>폰트 고르기 — Odin 3.0</title>
+<!-- 후보 폰트 (허용 CDN: jsdelivr · Google Fonts) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/packages/wanted-sans/fonts/webfonts/variable/complete/WantedSansVariable.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* 폰트 고르기 — 시장 온도 카드를 후보 서체·굵기로 나란히 (2026-09-16 "볼드가 어색하다").
+   색·구조·크기는 실제 화면과 같고 바뀌는 건 서체와 굵기뿐. 고른 뒤 이 파일은 지운다. */
+:root {
+  --chrome: #17181C; --canvas: #F4F5F7; --panel: #FFFFFF; --line: #E3E5E8;
+  --ink: #191F28; --muted: #6B7684; --accent: #2F6FED;
+  --up: #F04452; --down: #3182F6; --flat: #8B95A1; --live: #17A05D; --seg: #E9EBEE;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--canvas); color: var(--ink); padding: 20px 24px 60px; font-family: 'SUIT Variable', sans-serif; }
+h1 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.lead { font-size: 12px; color: var(--muted); margin-bottom: 18px; }
+.opt { margin-bottom: 26px; }
+.opt-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+.opt-name { font-size: 13px; font-weight: 700; }
+.opt-desc { font-size: 11px; color: var(--muted); }
+.row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.p-head { display: flex; align-items: baseline; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.p-title { font-size: 13px; letter-spacing: .02em; }
+.p-px { font-variant-numeric: tabular-nums; font-size: 16px; margin-left: auto; }
+.p-chg { font-variant-numeric: tabular-nums; font-size: 12px; }
+.p-body { padding: 14px; }
+.sec { font-size: 10.5px; letter-spacing: .1em; color: var(--muted); text-transform: uppercase;
+       margin: 14px 0 6px; display: flex; align-items: baseline; gap: 8px; }
+.sec:first-child { margin-top: 0; }
+.chip { font-size: 10px; color: var(--live); font-family: 'IBM Plex Mono', monospace; }
+.word { letter-spacing: -0.01em; line-height: 1.1; font-size: 30px; }
+.up { color: var(--up); } .down { color: var(--down); } .flat { color: var(--flat); }
+.sub { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--muted); margin-left: 10px; }
+.meta { font-size: 12px; color: var(--muted); margin-top: 8px; }
+.strip { display: flex; gap: 2px; margin-top: 12px; }
+.strip i { flex: 1 1 0; height: 5px; border-radius: 1px; }
+.strip-nm { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 4px; }
+.side-demo { display: flex; margin-top: 10px; }
+.side-demo div { background: var(--chrome); color: #E8EAED; padding: 7px 14px; font-size: 12px; }
+.side-demo div.t { font-size: 14px; }
+
+/* 후보별 서체 */
+.f-suit   { font-family: 'SUIT Variable', sans-serif; }
+.f-pre    { font-family: 'Pretendard Variable', sans-serif; }
+.f-wanted { font-family: 'Wanted Sans Variable', 'Wanted Sans', sans-serif; }
+.f-noto   { font-family: 'Noto Sans KR', sans-serif; }
+.f-plex   { font-family: 'IBM Plex Sans KR', sans-serif; }
+/* 후보별 굵기 */
+.w800 .p-title, .w800 .word, .w800 .side-demo .t { font-weight: 800; }
+.w800 .p-px, .w800 .p-chg, .w800 .meta b { font-weight: 700; }
+.w700 .p-title, .w700 .word, .w700 .side-demo .t { font-weight: 700; }
+.w700 .p-px, .w700 .p-chg, .w700 .meta b { font-weight: 600; }
+.w600 .p-title, .w600 .word, .w600 .side-demo .t { font-weight: 600; }
+.w600 .p-px, .w600 .p-chg, .w600 .meta b { font-weight: 500; }
+</style>
+</head>
+<body>
+<h1>폰트 고르기 — 시장 온도 카드</h1>
+<div class="lead">같은 화면을 서체·굵기만 바꿔 그렸습니다. 1번이 지금 쓰는 것입니다. 마음에 드는 번호를 알려 주세요.</div>
+<div id="list"></div>
+<script>
+const OPTIONS = [
+  ["1. SUIT · 굵게 (지금)", "현재 화면 그대로 — 상태 워드·제목 800", "f-suit w800"],
+  ["2. SUIT · 한 단계 얇게", "서체는 그대로, 굵기만 800→700 / 700→600", "f-suit w700"],
+  ["3. Pretendard · 700", "가장 널리 쓰이는 한글 UI 서체. 볼드가 덜 뭉친다", "f-pre w700"],
+  ["4. Wanted Sans · 700", "숫자·영문이 또렷한 편 — 금융 화면 가독", "f-wanted w700"],
+  ["5. IBM Plex Sans KR · 600", "시각 표기에 쓰는 모노(IBM Plex Mono)와 한 가족", "f-plex w600"],
+  ["6. Noto Sans KR · 700", "무난한 표준. 한글 획이 균일", "f-noto w700"],
+];
+const STRIP = ["up", "flat", "down", "up", "up", "flat", "down", "down", "up", "flat",
+               "up", "up", "down", "flat", "up", "down", "up", "up", "flat", "down"];
+
+function card(name, px, chg, word, wcls, since, weekWord, weekCls, weekChg, weekSince) {
+  const seg = STRIP.map(s => `<i style="background:var(--${s})"></i>`).join("");
+  const pm = v => (v > 0 ? "+" : "") + v.toFixed(2) + "%";
+  const c = v => v > 0 ? "up" : v < 0 ? "down" : "flat";
+  return `<div class="panel">
+    <div class="p-head"><span class="p-title">${name}</span>
+      <span class="p-px">${px}</span><span class="p-chg ${c(chg)}">${pm(chg)}</span></div>
+    <div class="p-body">
+      <div class="sec">실시간<span class="chip">● LIVE 12:39</span></div>
+      <div><span class="word ${wcls}">${word}</span><span class="sub ${c(chg)}">${pm(chg)}</span></div>
+      <div class="meta">${since}</div>
+      <div class="strip">${seg}</div><div class="strip-nm">최근 20거래일 · 종가 판정</div>
+      <div class="sec">주간<span class="chip">● LIVE 12:39</span></div>
+      <div><span class="word ${weekCls}">${weekWord}</span><span class="sub ${c(weekChg)}">${pm(weekChg)}</span></div>
+      <div class="meta">${weekSince}</div>
+      <div class="strip">${seg}</div><div class="strip-nm">최근 20거래일 · 주간 판정</div>
+    </div></div>`;
+}
+
+document.getElementById("list").innerHTML = OPTIONS.map(([nm, desc, cls]) => `
+  <div class="opt ${cls}">
+    <div class="opt-head"><span class="opt-name">${nm}</span><span class="opt-desc">${desc}</span></div>
+    <div class="row">
+      ${card("KOSPI", "6,678.57", 0.77, "상승", "up", "11:33부터 <b>67분</b>째", "하락장", "down", -5.29, "09/14부터 <b>3거래일</b>째")}
+      ${card("KOSDAQ", "809.60", -0.35, "테마주상승", "up", "12:39부터 <b>1분</b>째", "박스권", "flat", -2.50, "09/11부터 <b>4거래일</b>째")}
+    </div>
+    <div class="side-demo"><div class="t">파이프라인</div><div>시장 온도</div><div>매매리스트</div><div class="t">마켓</div></div>
+  </div>`).join("");
+</script>
+</body>
+</html>
