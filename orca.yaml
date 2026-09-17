@@ -1,0 +1,3 @@
+# Orca 워크트리 설정 (kickoff-workspaces). 공유 폴더는 symlink — 정확 동기화(uv sync 등)를 setup에 걸지 않는다.
+worktree:
+  sharedDirectories: []
