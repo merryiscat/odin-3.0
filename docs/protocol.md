@@ -77,6 +77,23 @@ orca orchestration check --wait --types "worker_done,escalation,question" --time
 
 머지·커밋·푸시만. main에서 코드를 고치지 않는다. 머지 후 워커 워크트리는 `orca worktree rm`으로 정리한다.
 
+## 8. 세션 비우기 — 언제 `/clear` 하나
+
+세션은 쌓일수록 비싸고(종량 pl은 매 턴 전체 문맥을 다시 보낸다) 흐려진다. 기억은 세션이 아니라 **파일**(스펙·검토서·검증 표)에 있다.
+
+| 자리 | 비우는 시점 | 비우지 않는 시점 |
+|---|---|---|
+| pl (Codex) | **태스크마다** — v2 보고 뒤, 또는 "차단 기각 있음" 보고 뒤 | 스펙 v1과 v2 사이 |
+| pl2 (Claude) | 태스크가 **main에 머지되고 워커 워크트리를 지운 뒤** | 검토·배정·대기·판정 중(run·task·dispatch id와 핸들을 들고 있다) |
+| 워커 | 워크트리 삭제로 끝난다(세션도 함께) | 되돌림 재작업은 같은 세션에서(2회까지) |
+| main | 한 바퀴 머지 뒤 권장 | — |
+
+공통: `AGENTS.md`·`CLAUDE.md`·`docs/protocol.md`·`docs/roles.md`가 바뀌면 **즉시** 비운다 — 시작할 때만 읽는다.
+Orca를 재시작했으면 터미널 핸들이 바뀐다 — `orca terminal list --worktree name:pl`로 다시 잡는다.
+pl2가 대기 중 끊겼으면 비우지 말고 `orca orchestration worker-list --include-remote --json`으로 dispatch·핸들을 되찾아 이어간다.
+`/compact`로 버티지 않는다 — pl에선 compact도 턴 비용이고, pl2는 어차피 머지 뒤 비운다.
+명령: 두 CLI 모두 `/clear`(새 대화). dispatch 5절이 머지 뒤 pl·pl2에 자동으로 보낸다.
+
 ## 근거 (2026-09-17 조사)
 
 - 이종 모델 조합만 일관되게 성능을 올렸다. 같은 모델에 프롬프트만 다른 토론은 다수결보다 못했다 —
