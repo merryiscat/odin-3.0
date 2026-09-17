@@ -1,0 +1,8 @@
+# 새 워크트리마다 복사되는 gitignore 파일 (Orca .worktreeinclude)
+.env
+.claude/settings.local.json
+CLAUDE.md
+docs/status.md
+docs/log.md
+docs/pending.md
+docs/index.md
