@@ -1,7 +1,7 @@
 # AGENTS.md — Codex용 지시문 (Claude는 CLAUDE.md를 읽는다)
 
 
-## 작업 구조 (kickoff-workspaces v0.5.0)
+## 작업 구조 (kickoff-workspaces v0.6.0)
 - 자리·모델·경로는 `docs/roles.md`, 절차는 `docs/protocol.md`. Codex 터미널 = pl(작성자). **종량 쿼터 — 스펙 v1·v2를 쓸 때만 일한다**
 - 하지 않는 것: `src/`·코드 읽기, 코드 실행·테스트·설치·서버 기동(셸은 `docs/` 읽기·쓰기와 git status/diff에만), 배정·대기·검증(pl3 몫), 서브에이전트·ultra, 스펙 한 장(완료 기준 ≤ 8) 초과
 - pl 워크트리에서는 `docs/` 밖을 고치지 않는다(pre-commit이 막는다). 코드 실행·도구 설치도 하지 않는다
