@@ -1,4 +1,4 @@
-<!-- kickoff-workspaces v0.4.1 — 원본은 ohmypm 플러그인. 여기서 고치지 말고 플러그인을 고친 뒤 "구조 업데이트하자" -->
+<!-- kickoff-workspaces v0.5.0 — 원본은 ohmypm 플러그인. 여기서 고치지 말고 플러그인을 고친 뒤 "구조 업데이트하자" -->
 # 작업 프로토콜 — 단일 패스 교차 검토와 등급별 구현
 
 역할·모델·경로는 대상 프로젝트 `docs/roles.md`가 단일 출처. 이 문서는 절차와 종료 조건만 소유한다.
@@ -24,6 +24,19 @@ pl 자리의 모델은 종량·소액 쿼터다(2026-09-17 사용자: "함부로
 pl이 하지 않는 것: 코드·`src/` 읽기(워커·검증자 몫), 코드 실행·테스트·설치·서버 기동(셸은 `docs/` 읽고 쓰는 용도로만 — Codex는 파일도 셸로 읽는다), 오케스트레이션 `check --wait`
 같은 대기 턴, 서브에이전트·ultra 모드, 스펙 한 장(완료 기준 ≤ 8개)을 넘는 장문, 요청받지 않은 재작성.
 pl2·pl3도 워커 일을 대신하지 않는다 — pl2는 검토만, pl3는 배정·판정만. 구현·문서 작성은 등급 모델 워커가 새 워크트리에서.
+
+
+### 모델 모드 — 페이블 한도가 소진된 주
+
+Claude Code는 **쿼터 소진으로 모델을 자동으로 내리지 않는다**. `--fallback-model`과 settings.json `fallbackModel`은
+과부하·미사용 가능만 대체하고 rate limit·요금 오류는 대체하지 않는다(공식 문서 model-config). 그래서 스위치를 손으로 넘긴다:
+```
+"${CLAUDE_PLUGIN_ROOT}"/skills/kickoff-workspaces/scripts/ws-model.sh fable-out <프로젝트>...   # 한도 소진
+"${CLAUDE_PLUGIN_ROOT}"/skills/kickoff-workspaces/scripts/ws-model.sh fable-in  <프로젝트>...   # 한도 복귀
+```
+`fable-out`이면 roles.md의 페이블 자리(pl2·L 워커)가 오퍼스가 되고 **pl3를 열지 않는다** — pl2가 오퍼스라 검토와
+코디네이션을 겸한다. 교차 검토의 근거는 벤더 차이이므로 Codex↔Claude 구도는 그대로다.
+현재 모드는 roles.md 맨 위 인용 줄에 있다(없으면 `fable-in`). `status`로도 본다.
 
 ## 흐름
 
@@ -110,6 +123,7 @@ Orca를 재시작했으면 터미널 핸들이 바뀐다 — `orca terminal list
 pl3가 대기 중 끊겼으면 비우지 말고 `orca orchestration worker-list --include-remote --json`으로 dispatch·핸들을 되찾아 이어간다.
 `/compact`로 버티지 않는다 — pl에선 compact도 턴 비용이고, pl3는 어차피 머지 뒤 비운다.
 명령: 두 CLI 모두 `/clear`(새 대화). dispatch 3절이 검토 뒤 pl2에, 5절이 머지 뒤 pl·pl3에 자동으로 보낸다.
+**Git Bash에서 보내지 않는다** — MSYS 경로 변환이 `/clear`를 `C:/Program Files/Git/clear`로 바꿔 텍스트로 꽂힌다(2026-09-18 두 번 실측). PowerShell에서 보내거나 `MSYS_NO_PATHCONV=1`을 앞에 붙인다.
 **보내기 전 확인**: 화면에 "esc to interrupt / ctrl+b to run / Waiting for"가 있으면 일하는 중이다 — 그때는 아무것도 보내지 않는다(텍스트가 실행 중 명령의 입력으로 들어간다). 멈춘 것 같으면 먼저 `orca terminal send --interrupt`.
 **`❯`가 떠 있어도 들고 있는 게 있을 수 있다** — 하단에 "N shell still running / ← N agent"가 보이면 `check --wait` 같은 백그라운드 대기를 쥔 것이다. 그 자리는 그 건이 머지될 때까지 비우지 않는다(2026-09-18 실측: 규칙 갱신 직후 pl2에 `/clear`를 보냈는데 워커 대기를 들고 있었다). **보낸 뒤 확인**: `/clear`는 텍스트로 들어가 한 턴을 태우기도 한다(같은 날 실측 — 세션이 "화면 정리 명령이라 처리할 것 없음"이라고 답했다). 보낸 뒤 화면을 읽어 새 대화 시작 화면인지 본다.
 
