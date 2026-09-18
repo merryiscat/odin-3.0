@@ -1,4 +1,4 @@
-<!-- kickoff-workspaces v0.6.0 — 원본은 ohmypm 플러그인. 여기서 고치지 말고 플러그인을 고친 뒤 "구조 업데이트하자" -->
+<!-- kickoff-workspaces v0.6.1 — 원본은 ohmypm 플러그인. 여기서 고치지 말고 플러그인을 고친 뒤 "구조 업데이트하자" -->
 # 작업 프로토콜 — 단일 패스 교차 검토와 등급별 구현
 
 역할·모델·경로는 대상 프로젝트 `docs/roles.md`가 단일 출처. 이 문서는 절차와 종료 조건만 소유한다.
@@ -132,16 +132,22 @@ pl3가 대기 중 끊겼으면 비우지 말고 `orca orchestration worker-list 
 **보내기 전 확인**: 화면에 "esc to interrupt / ctrl+b to run / Waiting for"가 있으면 일하는 중이다 — 그때는 아무것도 보내지 않는다(텍스트가 실행 중 명령의 입력으로 들어간다). 멈춘 것 같으면 먼저 `orca terminal send --interrupt`.
 **`❯`가 떠 있어도 들고 있는 게 있을 수 있다** — 하단에 "N shell still running / ← N agent"가 보이면 `check --wait` 같은 백그라운드 대기를 쥔 것이다. 그 자리는 그 건이 머지될 때까지 비우지 않는다(2026-09-18 실측: 규칙 갱신 직후 pl2에 `/clear`를 보냈는데 워커 대기를 들고 있었다). **보낸 뒤 확인**: `/clear`는 텍스트로 들어가 한 턴을 태우기도 한다(같은 날 실측 — 세션이 "화면 정리 명령이라 처리할 것 없음"이라고 답했다). 보낸 뒤 화면을 읽어 새 대화 시작 화면인지 본다.
 
-## 근거 (2026-09-17 조사)
+## 근거 (2026-09-17 조사, 2026-09-18 원문 재확인)
 
-- 이종 모델 조합만 일관되게 성능을 올렸다. 같은 모델에 프롬프트만 다른 토론은 다수결보다 못했다 —
-  [Revisiting MAD as Test-Time Scaling](https://arxiv.org/abs/2505.22960), [MAD 9 벤치마크 종합](https://beancount.io/bean-labs/research-logs/2026/05/24/multiagent-debate-factuality-reasoning-llms)
-- 검토 라운드를 늘리면 진짜 오류가 소진된 뒤 없는 문제를 만들고(정밀도 0.30→0.20) 대화 자체를 비평하는
-  쪽으로 표류한다. 단일 패스가 모든 다회차 변형을 이겼다 — [More Rounds, More Noise](https://arxiv.org/abs/2603.16244)
-- 아첨성 조기 합의와 동의 표류 — [Peacemaker or Troublemaker](https://arxiv.org/abs/2509.23055),
-  [Agreement Drift](https://arxiv.org/abs/2604.11312), [The Cost of Consensus](https://arxiv.org/abs/2605.00914)
-- 교차 벤더 코드 리뷰: Claude가 Codex 초안 검토 시 71.6→89.7%, Codex가 Claude 초안 검토 시 91.4→82.8%.
-  해로운 검토는 통째 재작성, 도움이 된 검토는 국소 지적 — [Cross-Model LLM Code Review](https://arxiv.org/abs/2607.21656).
-  → 검토자 재작성 금지, 작성자=Codex·검토자=Claude 기본 배정
-- 스펙 주도 개발: 기획·구현·검증 분리, 검증 가능한 완료 기준, 구현자가 아닌 별도 검증자 —
-  [SDD in 2026](https://dev.to/krlz/spec-driven-development-in-2026-what-it-is-the-tooling-and-how-teams-actually-use-it-2fk2)
+인용은 전부 실존을 확인했다. **둘은 우리가 잘못 읽었고, 아래에 기각으로 옮겼다.**
+
+**쓰는 근거**
+- **단일 패스가 다회차를 이긴다.** 검토를 반복하면 진짜 오류가 소진된 뒤 없는 문제를 만들고(거짓 양성 +62%, 정밀도 0.30→0.20) 산출물 대신 **대화 자체를 비평하는 쪽으로 표류**한다(Review Target Drift). 단일 패스 F1 0.376이 모든 다회차 변형을 이겼다 — [More Rounds, More Noise](https://arxiv.org/abs/2603.16244). → 검토 1회, 표류의 원인은 **이전 문답 맥락**이지 요청 원문이 아니다(2026-09-18 확인 — 그래서 요청 대조는 금지 대상이 아니다)
+- **교차 벤더 검토는 방향이 있다.** Claude가 Codex 초안을 검토하면 71.6→89.7%, 반대 방향은 91.4→82.8%. 해로운 검토는 통째 재작성, 도움이 된 검토는 국소 수정 — [Cross-Model LLM Code Review](https://arxiv.org/abs/2607.21656). → 작성자 Codex·검토자 Claude, 검토자 재작성 금지
+  - **적용 한계(중요)**: 대상은 **단일 파일 Python 경쟁 프로그래밍 116건**이고 스펙·설계 문서가 아니다. 오류 분류에 **요구사항 오해(requirement mismatch)가 없다** — 2026-09-18 T-003에서 우리가 실패한 종류를 이 논문은 다루지 않는다. 저자도 "exploratory"라고 적었다
+  - 비용: 과제당 약 $0.25, **순 수정 1건당 약 $1.40**, 지연 38.5초→135.8초. 검토는 공짜가 아니다
+- **아첨성 조기 합의는 단일 에이전트보다 못하다** — [Peacemaker or Troublemaker](https://arxiv.org/abs/2509.23055). → 토론하지 않는다, 차단 기각은 게이트로
+- **동질 팀의 무구조 토론은 자기 수정보다 못하고 토큰을 2.1~3.4배 쓴다** — [The Cost of Consensus](https://arxiv.org/abs/2605.00914). → 역할을 나눌 거면 구조를 주고, 아니면 나누지 않는다
+- 스펙 주도 개발: 기획·구현·검증 분리, 검증 가능한 완료 기준, 구현자가 아닌 별도 검증자 — [SDD in 2026](https://dev.to/krlz/spec-driven-development-in-2026-what-it-is-the-tooling-and-how-teams-actually-use-it-2fk2) (원문 미검증)
+
+**기각한 인용 (2026-09-18)**
+- [Revisiting MAD as Test-Time Scaling](https://arxiv.org/abs/2505.22960) — 우리 문서는 "이종 모델 조합만 일관되게 성능을 올렸다"의 근거로 걸었으나, **초록은 정반대에 가깝다**: 수학 추론에서 "agent diversity shows little benefit"이고, 다양성이 도움이 된 건 안전성 과제였다. 이종 구성의 근거는 위 Cross-Model 하나로 족하다
+- [Agreement Drift](https://arxiv.org/abs/2604.11312) — 코드·과제 품질 논문이 아니라 **사회 시뮬레이션**(cs.SI) 논문이다. 동질성 네트워크에서 LLM 에이전트의 의견 이동을 본 것이고, 저자 결론은 "LLM 집단을 인간 집단의 대리로 보지 말라"이다. 검토 절차의 근거로 쓸 수 없다
+
+**이 목록이 다루지 않는 것 — 우리가 새로 만든 구간**
+위 인용은 전부 **검토 한 번의 값어치**에 관한 것이다. main이 pl에 브리핑하는 구간, 코디네이터·게이트·워커 배정·대기 같은 오케스트레이션 층은 **어떤 인용도 지지하지 않는다**. 그 층은 우리가 자리를 나누면서 만든 것이고, 2026-09-18 T-003의 실패도 거기서 났다. 자리를 늘릴 때는 근거가 아니라 가설을 늘리는 것임을 알고 늘린다.
