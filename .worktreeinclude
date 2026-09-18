@@ -1,3 +1,11 @@
 # 새 워크트리마다 복사되는 gitignore 파일 (Orca .worktreeinclude)
 .env
 .claude/settings.local.json
+
+# 작업 구조(kickoff-workspaces) 파일 — 이 저장소는 docs·CLAUDE.md를 공개 보류로 두어
+# git에 없다. 워크트리마다 복사해야 pl·pl2가 규칙서·역할표·템플릿을 읽는다 (2026-09-19)
+CLAUDE.md
+docs/protocol.md
+docs/roles.md
+docs/tasks
+docs/reviews
