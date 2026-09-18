@@ -1,5 +1,5 @@
 #!/bin/sh
-# kickoff-workspaces v0.6.1 (관리 파일 — 플러그인에서 갱신)
+# kickoff-workspaces v0.7.0 (관리 파일 — 플러그인에서 갱신)
 # 기획 브랜치 가드 (kickoff-workspaces) — pl 워크트리에서는 docs/ 밖 파일을 커밋할 수 없다.
 # 판정은 브랜치 마지막 세그먼트: pl, pl-<주제> (Orca가 <git-username>/pl 꼴로 만든다)
 branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) || exit 0
