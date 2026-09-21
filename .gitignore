@@ -131,9 +131,16 @@ temp/
 !/docs/roles.md
 !/docs/tasks/
 !/docs/reviews/
+!/docs/workflow.json
+!/docs/workflow-guide.md
 # MCP 설정: 비밀 키는 없지만(OAuth 인증) 프로젝트 식별자가 담김 → 로컬 전용.
 .mcp.json
 
 # ---- 디자인 레퍼런스 (타사 화면 캡처 — 공개 레포에 커밋 금지) ----------------
 odin_gui/design_refs/
 docs/benchmark.md
+
+# ohmyPM task-local runtime
+/.ohmypm-work/
+/docs/benchmark.md
+*.pyc
