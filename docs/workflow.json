@@ -1,0 +1,17 @@
+{
+  "version": "1.0.0",
+  "roles": {
+    "main": {
+      "agent": "claude"
+    },
+    "pl": {
+      "agent": "codex",
+      "model": "gpt-6-astra",
+      "effort": "high"
+    },
+    "work": {
+      "agent": "claude",
+      "model": "sonnet"
+    }
+  }
+}

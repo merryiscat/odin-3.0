@@ -125,7 +125,14 @@ temp/
 /CLAUDE.md
 /db/old_schema_map.md
 # 작업 보드·보류 대장·일간보고 로그 — 내부 진행 기록이라 로컬 전용(ohmyPM은 로컬 파일을 직접 읽음).
-/docs/
+/docs/*
+# 작업 구조(kickoff-workspaces) 파일만 추적 — 나머지 docs는 종전대로 로컬 (2026-09-17)
+!/docs/protocol.md
+!/docs/roles.md
+!/docs/tasks/
+!/docs/reviews/
+!/docs/workflow.json
+!/docs/workflow-guide.md
 # MCP 설정: 비밀 키는 없지만(OAuth 인증) 프로젝트 식별자가 담김 → 로컬 전용.
 .mcp.json
 

@@ -1,5 +1,6 @@
 # AGENTS.md — Codex용 지시문 (Claude는 CLAUDE.md를 읽는다)
 
+
 ## 작업 구조 (kickoff-workspaces v1.0.0)
 - 역할은 `docs/roles.md`, 모델은 `docs/workflow.json`, 절차는 `docs/protocol.md`, 명령은 `docs/workflow-guide.md`.
 - main은 접수·알림·환경 준비·로컬 머지, pl은 설계·품질 책임, work는 승인된 범위의 구현을 맡는다.

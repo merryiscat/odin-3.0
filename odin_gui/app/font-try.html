@@ -8,10 +8,13 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/packages/wanted-sans/fonts/webfonts/variable/complete/WantedSansVariable.css">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/moonspam/NanumSquareNeo@1.0/nanumsquareneo.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Gothic+A1:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
-/* 폰트 고르기 — 시장 온도 카드를 후보 서체·굵기로 나란히 (2026-09-16 "볼드가 어색하다").
-   색·구조·크기는 실제 화면과 같고 바뀌는 건 서체와 굵기뿐. 고른 뒤 이 파일은 지운다. */
+/* 폰트 고르기 v2 — 2026-09-17.
+   v1은 카드 안 30px 두 글자로만 비교해서 "변화가 없다"는 지적을 받았다. 실측하니 폰트는 6종 다
+   적용되고 있었고 글자폭 차이가 1~3%(한글 고딕끼리 원래 닮음)라 눈에 안 띄었던 것.
+   그래서 축을 나눈다: ① 굵기만 크게 비교 ② 폰트만 크게 비교 ③ 실제 카드 크기 비교. */
 :root {
   --chrome: #17181C; --canvas: #F4F5F7; --panel: #FFFFFF; --line: #E3E5E8;
   --ink: #191F28; --muted: #6B7684; --accent: #2F6FED;
@@ -19,92 +22,106 @@
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { background: var(--canvas); color: var(--ink); padding: 20px 24px 60px; font-family: 'SUIT Variable', sans-serif; }
-h1 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
-.lead { font-size: 12px; color: var(--muted); margin-bottom: 18px; }
-.opt { margin-bottom: 26px; }
-.opt-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
-.opt-name { font-size: 13px; font-weight: 700; }
-.opt-desc { font-size: 11px; color: var(--muted); }
-.row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+h1 { font-size: 16px; font-weight: 700; }
+h2 { font-size: 13px; font-weight: 700; margin: 26px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+.lead { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.hint { font-size: 11px; color: var(--muted); margin: 6px 0 10px; }
+
+/* ① 굵기 비교 */
+.wrow { display: flex; align-items: baseline; gap: 14px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.wrow:last-child { border-bottom: 0; }
+.wlab { font-size: 11px; color: var(--muted); width: 84px; flex: none; }
+.big { font-size: 56px; line-height: 1.15; letter-spacing: -0.01em; color: var(--up); }
+.big.d { color: var(--down); }
+.pick { font-size: 11px; color: var(--muted); margin-left: auto; white-space: nowrap; }
+
+/* ② 폰트 비교 */
+.frow { display: flex; align-items: baseline; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.frow:last-child { border-bottom: 0; }
+.flab { font-size: 12px; font-weight: 700; width: 150px; flex: none; }
+.flab span { display: block; font-size: 10.5px; font-weight: 400; color: var(--muted); }
+.fbig { font-size: 44px; line-height: 1.2; letter-spacing: -0.01em; font-weight: 700; }
+.fnum { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; margin-left: 10px; color: var(--ink); }
+
+/* ③ 실제 카드 크기 */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
 .p-head { display: flex; align-items: baseline; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
-.p-title { font-size: 13px; letter-spacing: .02em; }
-.p-px { font-variant-numeric: tabular-nums; font-size: 16px; margin-left: auto; }
-.p-chg { font-variant-numeric: tabular-nums; font-size: 12px; }
+.p-title { font-size: 13px; font-weight: 800; }
+.p-px { font-variant-numeric: tabular-nums; font-size: 16px; font-weight: 700; margin-left: auto; }
+.p-chg { font-variant-numeric: tabular-nums; font-size: 12px; font-weight: 700; color: var(--up); }
 .p-body { padding: 14px; }
-.sec { font-size: 10.5px; letter-spacing: .1em; color: var(--muted); text-transform: uppercase;
-       margin: 14px 0 6px; display: flex; align-items: baseline; gap: 8px; }
-.sec:first-child { margin-top: 0; }
-.chip { font-size: 10px; color: var(--live); font-family: 'IBM Plex Mono', monospace; }
-.word { letter-spacing: -0.01em; line-height: 1.1; font-size: 30px; }
-.up { color: var(--up); } .down { color: var(--down); } .flat { color: var(--flat); }
+.sec { font-size: 10.5px; font-weight: 600; letter-spacing: .1em; color: var(--muted); margin-bottom: 6px; }
+.word { font-size: 30px; font-weight: 800; line-height: 1.1; letter-spacing: -0.01em; color: var(--up); }
 .sub { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--muted); margin-left: 10px; }
 .meta { font-size: 12px; color: var(--muted); margin-top: 8px; }
-.strip { display: flex; gap: 2px; margin-top: 12px; }
-.strip i { flex: 1 1 0; height: 5px; border-radius: 1px; }
-.strip-nm { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 4px; }
-.side-demo { display: flex; margin-top: 10px; }
-.side-demo div { background: var(--chrome); color: #E8EAED; padding: 7px 14px; font-size: 12px; }
-.side-demo div.t { font-size: 14px; }
+.meta b { color: var(--ink); }
+.cap { font-size: 11px; font-weight: 700; margin-bottom: 6px; }
 
 /* 후보별 서체 */
 .f-suit   { font-family: 'SUIT Variable', sans-serif; }
 .f-pre    { font-family: 'Pretendard Variable', sans-serif; }
-.f-wanted { font-family: 'Wanted Sans Variable', 'Wanted Sans', sans-serif; }
-.f-noto   { font-family: 'Noto Sans KR', sans-serif; }
+.f-wanted { font-family: 'Wanted Sans Variable', sans-serif; }
 .f-plex   { font-family: 'IBM Plex Sans KR', sans-serif; }
-/* 후보별 굵기 */
-.w800 .p-title, .w800 .word, .w800 .side-demo .t { font-weight: 800; }
-.w800 .p-px, .w800 .p-chg, .w800 .meta b { font-weight: 700; }
-.w700 .p-title, .w700 .word, .w700 .side-demo .t { font-weight: 700; }
-.w700 .p-px, .w700 .p-chg, .w700 .meta b { font-weight: 600; }
-.w600 .p-title, .w600 .word, .w600 .side-demo .t { font-weight: 600; }
-.w600 .p-px, .w600 .p-chg, .w600 .meta b { font-weight: 500; }
+.f-noto   { font-family: 'Noto Sans KR', sans-serif; }
+.f-gothic { font-family: 'Gothic A1', sans-serif; }
+.f-nsq    { font-family: 'NanumSquareNeo', sans-serif; }
 </style>
 </head>
 <body>
-<h1>폰트 고르기 — 시장 온도 카드</h1>
-<div class="lead">같은 화면을 서체·굵기만 바꿔 그렸습니다. 1번이 지금 쓰는 것입니다. 마음에 드는 번호를 알려 주세요.</div>
-<div id="list"></div>
+<h1>폰트 고르기</h1>
+<div class="lead">v1은 차이가 1~3%라 눈에 안 보였습니다. 글자를 키우고 축을 나눴습니다. 번호로 답해 주세요.</div>
+
+<h2>① 굵기만 비교 — 지금 서체(SUIT) 그대로, 굵기만 다름</h2>
+<div class="hint">"볼드가 어색하다"의 답이 여기 있을 수 있습니다. 지금 화면은 800입니다.</div>
+<div id="weights" class="f-suit"></div>
+
+<h2>② 서체만 비교 — 굵기는 700으로 통일</h2>
+<div class="hint">상태 워드·지수값을 실제 화면에서 쓰는 조합으로 나란히 놓았습니다.</div>
+<div id="fonts"></div>
+
+<h2>③ 실제 카드 크기에서 — 위에서 마음이 간 것만 확인</h2>
+<div class="hint">실제 화면 크기(상태 워드 30px)에서는 차이가 작습니다. 최종 확인용입니다.</div>
+<div class="cards" id="cards"></div>
+
 <script>
-const OPTIONS = [
-  ["1. SUIT · 굵게 (지금)", "현재 화면 그대로 — 상태 워드·제목 800", "f-suit w800"],
-  ["2. SUIT · 한 단계 얇게", "서체는 그대로, 굵기만 800→700 / 700→600", "f-suit w700"],
-  ["3. Pretendard · 700", "가장 널리 쓰이는 한글 UI 서체. 볼드가 덜 뭉친다", "f-pre w700"],
-  ["4. Wanted Sans · 700", "숫자·영문이 또렷한 편 — 금융 화면 가독", "f-wanted w700"],
-  ["5. IBM Plex Sans KR · 600", "시각 표기에 쓰는 모노(IBM Plex Mono)와 한 가족", "f-plex w600"],
-  ["6. Noto Sans KR · 700", "무난한 표준. 한글 획이 균일", "f-noto w700"],
+const FONTS = [
+  ["f-suit",   "SUIT",             "지금 쓰는 서체"],
+  ["f-pre",    "Pretendard",       "한글 UI에서 가장 널리 쓰임"],
+  ["f-wanted", "Wanted Sans",      "숫자·영문이 또렷한 편"],
+  ["f-plex",   "IBM Plex Sans KR", "시각 표기 모노와 한 가족"],
+  ["f-noto",   "Noto Sans KR",     "표준 본고딕"],
+  ["f-gothic", "Gothic A1",        "획이 곧고 각진 편"],
+  ["f-nsq",    "나눔스퀘어 네오",   "각진 사각 골격 — 성격이 가장 다름"],
 ];
-const STRIP = ["up", "flat", "down", "up", "up", "flat", "down", "down", "up", "flat",
-               "up", "up", "down", "flat", "up", "down", "up", "up", "flat", "down"];
 
-function card(name, px, chg, word, wcls, since, weekWord, weekCls, weekChg, weekSince) {
-  const seg = STRIP.map(s => `<i style="background:var(--${s})"></i>`).join("");
-  const pm = v => (v > 0 ? "+" : "") + v.toFixed(2) + "%";
-  const c = v => v > 0 ? "up" : v < 0 ? "down" : "flat";
-  return `<div class="panel">
-    <div class="p-head"><span class="p-title">${name}</span>
-      <span class="p-px">${px}</span><span class="p-chg ${c(chg)}">${pm(chg)}</span></div>
-    <div class="p-body">
-      <div class="sec">실시간<span class="chip">● LIVE 12:39</span></div>
-      <div><span class="word ${wcls}">${word}</span><span class="sub ${c(chg)}">${pm(chg)}</span></div>
-      <div class="meta">${since}</div>
-      <div class="strip">${seg}</div><div class="strip-nm">최근 20거래일 · 종가 판정</div>
-      <div class="sec">주간<span class="chip">● LIVE 12:39</span></div>
-      <div><span class="word ${weekCls}">${weekWord}</span><span class="sub ${c(weekChg)}">${pm(weekChg)}</span></div>
-      <div class="meta">${weekSince}</div>
-      <div class="strip">${seg}</div><div class="strip-nm">최근 20거래일 · 주간 판정</div>
-    </div></div>`;
-}
+document.getElementById("weights").innerHTML = [400, 500, 600, 700, 800, 900].map(w => `
+  <div class="wrow">
+    <span class="wlab">굵기 ${w}${w === 800 ? " (지금)" : ""}</span>
+    <span class="big" style="font-weight:${w}">테마주상승</span>
+    <span class="big d" style="font-weight:${w}">하락장</span>
+    <span class="pick">①-${w}</span>
+  </div>`).join("");
 
-document.getElementById("list").innerHTML = OPTIONS.map(([nm, desc, cls]) => `
-  <div class="opt ${cls}">
-    <div class="opt-head"><span class="opt-name">${nm}</span><span class="opt-desc">${desc}</span></div>
-    <div class="row">
-      ${card("KOSPI", "6,678.57", 0.77, "상승", "up", "11:33부터 <b>67분</b>째", "하락장", "down", -5.29, "09/14부터 <b>3거래일</b>째")}
-      ${card("KOSDAQ", "809.60", -0.35, "테마주상승", "up", "12:39부터 <b>1분</b>째", "박스권", "flat", -2.50, "09/11부터 <b>4거래일</b>째")}
+document.getElementById("fonts").innerHTML = FONTS.map(([cls, nm, desc], i) => `
+  <div class="frow ${cls}">
+    <span class="flab">${i + 1}. ${nm}<span>${desc}</span></span>
+    <span class="fbig">테마주상승</span>
+    <span class="fnum">6,678.57 +0.77%</span>
+    <span class="pick">②-${i + 1}</span>
+  </div>`).join("");
+
+document.getElementById("cards").innerHTML = FONTS.map(([cls, nm]) => `
+  <div class="${cls}">
+    <div class="cap">${nm}</div>
+    <div class="panel">
+      <div class="p-head"><span class="p-title">KOSPI</span><span class="p-px">6,678.57</span><span class="p-chg">+0.77%</span></div>
+      <div class="p-body">
+        <div class="sec">실시간</div>
+        <div><span class="word">테마주상승</span><span class="sub">+0.77%</span></div>
+        <div class="meta">11:33부터 <b>67분</b>째</div>
+      </div>
     </div>
-    <div class="side-demo"><div class="t">파이프라인</div><div>시장 온도</div><div>매매리스트</div><div class="t">마켓</div></div>
   </div>`).join("");
 </script>
 </body>

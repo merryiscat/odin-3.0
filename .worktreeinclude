@@ -9,3 +9,9 @@ docs/protocol.md
 docs/roles.md
 docs/tasks
 docs/reviews
+
+# 로컬 전용 진행 기록 — pl이 작업 보드·보류 대장·로그를 읽어야 한다
+docs/status.md
+docs/log.md
+docs/pending.md
+docs/index.md
