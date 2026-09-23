@@ -139,6 +139,9 @@ temp/
 # ---- 디자인 레퍼런스 (타사 화면 캡처 — 공개 레포에 커밋 금지) ----------------
 odin_gui/design_refs/
 
+# 매매모델 가상 계좌 기록(SQLite)·검토 결과 — 로컬 전용
+/model_module/records/
+
 # ohmyPM task-local runtime
 /.ohmypm-work/
 /docs/benchmark.md

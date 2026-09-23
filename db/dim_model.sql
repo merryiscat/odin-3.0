@@ -13,6 +13,8 @@
 --     ('baseline-random-pick-v1', 'pick', '기준선: 무작위 선정',          'v1', 'dev')
 --     ('baseline-topcap-pick-v1', 'pick', '기준선: 시총 상위',            'v1', 'dev')
 --     ('baseline-carry-pick-v1',  'pick', '기준선: 어제 리스트 그대로',    'v1', 'dev')
+--   매매모델(kind=trade, 2026-09-23 추가 — 등록 완료):
+--     ('rule-trade-v1',           'trade', '규칙 기반 매매모델 1호(가상 계좌)', 'v1', 'dev')
 -- ============================================================================
 
 create table if not exists dim_model (
